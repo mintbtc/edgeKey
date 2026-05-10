@@ -19,7 +19,8 @@
         <textarea v-model="singleForm.content" class="textarea textarea-bordered w-full" rows="4" placeholder="输入卡密内容"></textarea>
         <p v-if="errorMessage" class="text-sm text-error">{{ errorMessage }}</p>
         <div class="modal-action">
-          <AppButton variant="primary" @click="handleCreateCard">新增卡密</AppButton><form method="dialog"><AppButton variant="ghost">取消</AppButton></form>
+          <AppButton variant="primary" @click="handleCreateCard">新增卡密</AppButton>
+          <form method="dialog"><button class="btn btn-ghost">取消</button></form>
         </div>
       </div>
       <form method="dialog" class="modal-backdrop"><button>close</button></form>
@@ -39,7 +40,7 @@
         <p v-if="errorMessage" class="text-sm text-error">{{ errorMessage }}</p>
         <div class="modal-action">
           <AppButton variant="primary" @click="handleImportCards">导入卡密</AppButton>
-          <form method="dialog"><AppButton variant="ghost">取消</AppButton></form>
+          <form method="dialog"><button class="btn btn-ghost">取消</button></form>
         </div>
       </div>
       <form method="dialog" class="modal-backdrop"><button>close</button></form>
