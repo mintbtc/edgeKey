@@ -50,8 +50,6 @@ CREATE TABLE "Product" (
     "price" INTEGER NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'DRAFT',
     "deliveryType" TEXT NOT NULL DEFAULT 'CARD_AUTO',
-    "fixedDeliveryContent" TEXT,
-    "manualDeliveryHint" TEXT,
     "stockMode" TEXT NOT NULL DEFAULT 'FINITE',
     "minBuy" INTEGER NOT NULL DEFAULT 1,
     "maxBuy" INTEGER NOT NULL DEFAULT 1,
