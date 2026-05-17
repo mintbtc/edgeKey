@@ -359,43 +359,47 @@
           <span class="text-sm text-base-content/60">共 {{ logList.length }} 条记录</span>
           <AppButton size="sm" variant="danger" :disabled="!logList.length" @click="showClearConfirm = true">清除日志</AppButton>
         </div>
-        <div class="overflow-x-auto">
-          <table class="table table-zebra">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>时间</th>
-                <th>分类</th>
-                <th>邮箱名称</th>
-                <th>场景</th>
-                <th>状态</th>
-                <th>收件人</th>
-                <th>主题</th>
-                <th>触发来源</th>
-                <th>备注</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="!logList.length"><td colspan="10" class="text-center text-base-content/60">暂无邮件日志</td></tr>
-              <tr v-for="(log, index) in logList" :key="log.id">
-                <th>{{ index + 1 }}</th>
-                <td class="whitespace-nowrap">{{ formatDate(log.createdAt) }}</td>
-                <td class="whitespace-nowrap">{{ getChannelLabel(log.provider) }}</td>
-                <td class="whitespace-nowrap">{{ configs.find(c => c.provider === log.provider)?.name || '-' }}</td>
-                <td class="whitespace-nowrap">{{ getSceneLabel(log.scene) }}</td>
-                <td>
-                  <StatusTag class="whitespace-nowrap" :type="log.status === 'SUCCESS' ? 'success' : 'danger'">
-                    {{ log.status === 'SUCCESS' ? '成功' : '失败' }}
-                  </StatusTag>
-                </td>
-                <td class="whitespace-nowrap">{{ log.toEmail }}</td>
-                <td class="max-w-xs truncate" :title="log.subject">{{ log.subject }}</td>
-                <td class="whitespace-nowrap">{{ log.triggeredBy || '-' }}</td>
-                <td class="max-w-xs truncate" :title="log.error || log.messageId || ''">{{ log.error || log.messageId || '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          :columns="logColumns"
+          :rows="paginatedLogs"
+          :total="logList.length"
+          :page="currentLogPage"
+          :page-size="LOG_PAGE_SIZE"
+          @update:page="currentLogPage = $event"
+        >
+          <template #index="{ row }">
+            {{ logList.indexOf(row) + 1 }}
+          </template>
+          <template #createdAt="{ value }">
+            <span class="whitespace-nowrap">{{ formatDate(value) }}</span>
+          </template>
+          <template #provider="{ value }">
+            <span class="whitespace-nowrap">{{ getChannelLabel(value) }}</span>
+          </template>
+          <template #configName="{ row }">
+            <span class="whitespace-nowrap">{{ configs.find(c => c.provider === row.provider)?.name || '-' }}</span>
+          </template>
+          <template #scene="{ value }">
+            <span class="whitespace-nowrap">{{ getSceneLabel(value) }}</span>
+          </template>
+          <template #status="{ value }">
+            <StatusTag class="whitespace-nowrap" :type="value === 'SUCCESS' ? 'success' : 'danger'">
+              {{ value === 'SUCCESS' ? '成功' : '失败' }}
+            </StatusTag>
+          </template>
+          <template #toEmail="{ value }">
+            <span class="whitespace-nowrap">{{ value }}</span>
+          </template>
+          <template #subject="{ value }">
+            <span class="max-w-xs truncate" :title="value">{{ value }}</span>
+          </template>
+          <template #triggeredBy="{ value }">
+            <span class="whitespace-nowrap">{{ value || '-' }}</span>
+          </template>
+          <template #note="{ row }">
+            <span class="max-w-xs truncate" :title="row.error || row.messageId || ''">{{ row.error || row.messageId || '-' }}</span>
+          </template>
+        </DataTable>
       </div>
     </section>
 
@@ -457,6 +461,7 @@ import AppButton from "../../../components/AppButton.vue";
 import SecretInput from "../../../components/SecretInput.vue";
 import StatusTag from "../../../components/StatusTag.vue";
 import ConfirmDialog from "../../../components/ConfirmDialog.vue";
+import DataTable from "../../../components/DataTable.vue";
 import { normalizeTelefuncError } from "../../../lib/app-error";
 import { reactive, ref, computed, useTemplateRef } from "vue";
 import { useData } from "vike-vue/useData";
@@ -503,8 +508,29 @@ const { configs, templates, logs: initialLogs, metrics, pushSettings: initialPus
 const activeTab = ref<"stats" | "config" | "list" | "template">("stats");
 const confirmRef = useTemplateRef<InstanceType<typeof ConfirmDialog>>("confirmRef");
 
-// ===================== Mailbox list =====================
+// ===================== Email logs =====================
 const logList = reactive([...initialLogs]);
+const currentLogPage = ref(1);
+const LOG_PAGE_SIZE = 20;
+
+const paginatedLogs = computed(() => {
+  const start = (currentLogPage.value - 1) * LOG_PAGE_SIZE;
+  const end = start + LOG_PAGE_SIZE;
+  return logList.slice(start, end);
+});
+
+const logColumns = [
+  { key: "index", label: "#" },
+  { key: "createdAt", label: "时间" },
+  { key: "provider", label: "分类" },
+  { key: "configName", label: "邮箱名称" },
+  { key: "scene", label: "场景" },
+  { key: "status", label: "状态" },
+  { key: "toEmail", label: "收件人" },
+  { key: "subject", label: "主题" },
+  { key: "triggeredBy", label: "触发来源" },
+  { key: "note", label: "备注" },
+];
 
 const mailboxList = reactive<MailboxItem[]>(
   Array.isArray(configs) ? configs.map((c: any) => ({ ...c })) : []
