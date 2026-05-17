@@ -11,15 +11,23 @@
           <option value="">全部支付方式</option>
           <option value="EPAY">易支付</option>
           <option value="ALIPAY">支付宝</option>
+          <option value="STRIPE">Stripe</option>
           <option value="BEPUSDT">BEpusdt</option>
         </select>
         <select v-model="filter.status" class="select select-sm select-bordered w-32">
-          <option value="">全部状态</option>
-          <option value="PENDING">待支付</option>
+          <option value="">全部订单状态</option>
+          <option value="PENDING">待处理</option>
           <option value="PAID">已支付</option>
           <option value="DELIVERED">已发货</option>
-          <option value="CLOSED">已关闭</option><option value="FAILED">失败</option>
+          <option value="CLOSED">已关闭</option>
+          <option value="FAILED">失败</option>
         </select>
+        <!-- <select v-model="filter.paymentStatus" class="select select-sm select-bordered w-32">
+          <option value="">全部支付状态</option>
+          <option value="UNPAID">未支付</option>
+          <option value="PAID">已支付</option>
+          <option value="FAILED">支付失败</option>
+        </select> -->
         <input v-model="filter.startDate" type="date" class="input input-sm input-bordered w-40" />
         <input v-model="filter.endDate" type="date" class="input input-sm input-bordered w-40" />
         <AppButton size="sm" variant="primary" @click="handleSearch">搜索</AppButton>
@@ -37,11 +45,9 @@
         <template #amount="{ value }">{{ formatCents(value) }}</template>
         <template #paymentProvider="{ value }">{{ getPaymentProviderLabel(value) }}</template>
         <template #status="{ row }">
-          <div class="flex flex-wrap gap-1">
-            <StatusTag :type="getOrderStatusType(row.status)">{{ getOrderStatusLabel(row.status) }}</StatusTag>
-            <StatusTag :type="getPaymentStatusType(row.paymentStatus)">{{ getPaymentStatusLabel(row.paymentStatus) }}</StatusTag>
-            <StatusTag :type="getDeliveryStatusType(row.deliveryStatus)">{{ getDeliveryStatusLabel(row.deliveryStatus) }}</StatusTag>
-          </div>
+          <StatusTag :type="getOrderStatusType(row.status)">{{ getOrderStatusLabel(row.status) }}</StatusTag>
+          <!-- <StatusTag :type="getPaymentStatusType(row.paymentStatus)">{{ getPaymentStatusLabel(row.paymentStatus) }}</StatusTag> -->
+          <!-- <StatusTag :type="getDeliveryStatusType(row.deliveryStatus)">{{ getDeliveryStatusLabel(row.deliveryStatus) }}</StatusTag> -->
         </template>
         <template #createdAt="{ value }">{{ new Date(value).toLocaleString() }}</template>
         <template #actions="{ row }">
@@ -69,7 +75,7 @@ const PAGE_SIZE = 20;
 const currentPage = ref(1);
 const orderPage = ref(orders);
 
-const filter = reactive({ orderNo: "", productName: "", paymentProvider: "", status: "", startDate: "", endDate: "" });
+const filter = reactive({ orderNo: "", productName: "", paymentProvider: "", status: "", paymentStatus: "", startDate: "", endDate: "" });
 
 const columns = [
   { key: "orderNo", label: "订单号" },
@@ -87,6 +93,7 @@ async function fetchPage(page: number) {
     productName: filter.productName || undefined,
     paymentProvider: filter.paymentProvider || undefined,
     status: filter.status || undefined,
+    paymentStatus: filter.paymentStatus || undefined,
     startDate: filter.startDate || undefined,
     endDate: filter.endDate || undefined,
     page,
@@ -107,6 +114,7 @@ async function handleReset() {
   filter.productName = "";
   filter.paymentProvider = "";
   filter.status = "";
+  filter.paymentStatus = "";
   filter.startDate = "";
   filter.endDate = "";
   await fetchPage(1);

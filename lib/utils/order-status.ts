@@ -45,6 +45,10 @@ export function getPaymentProviderLabel(provider: string) {
   switch (provider) {
     case "EPAY":
       return "易支付";
+    case "ALIPAY":
+      return "支付宝";
+    case "STRIPE":
+      return "Stripe";
     case "BEPUSDT":
       return "BEpusdt";
     default:

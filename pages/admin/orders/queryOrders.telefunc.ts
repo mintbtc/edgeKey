@@ -7,6 +7,7 @@ export async function onQueryOrders(input: {
   productName?: string;
   paymentProvider?: string;
   status?: string;
+  paymentStatus?: string;
   startDate?: string;
   endDate?: string;
   page: number;
@@ -19,6 +20,7 @@ export async function onQueryOrders(input: {
   if (input.productName) where.productNameSnapshot = { contains: input.productName };
   if (input.paymentProvider) where.paymentProvider = input.paymentProvider;
   if (input.status) where.status = input.status;
+  if (input.paymentStatus) where.paymentStatus = input.paymentStatus;
   if (input.startDate || input.endDate) {
     where.createdAt = {
       ...(input.startDate ? { gte: new Date(input.startDate) } : {}),
