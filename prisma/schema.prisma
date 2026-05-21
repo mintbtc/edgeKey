@@ -57,11 +57,6 @@ enum EmailChannel {
   CLOUDFLARE
 }
 
-enum EmailApiProvider {
-  BREVO
-  MAILJET
-}
-
 enum EmailScene {
   TEST
   ORDER_PAID
@@ -329,7 +324,7 @@ model EmailLog {
   id          Int             @id @default(autoincrement())
   orderId     Int?
   provider    EmailChannel
-  apiProvider EmailApiProvider?
+  apiProvider String?
   scene       EmailScene
   status      EmailSendStatus @default(SUCCESS)
   toEmail     String

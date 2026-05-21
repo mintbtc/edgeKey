@@ -1,6 +1,6 @@
 export type EmailChannel = "API" | "SMTP" | "CLOUDFLARE";
 
-export type EmailApiProvider = "BREVO" | "MAILJET";
+export type EmailApiProvider = string;
 
 export type EmailScene = "TEST" | "ORDER_PAID" | "DELIVERY_SUCCESS" | "DELIVERY_FAILED";
 
@@ -24,7 +24,6 @@ export interface EmailApiConfigValue extends EmailPushFlags {
   replyTo?: string;
   apiBaseUrl: string;
   apiKey?: string;
-  secretKey?: string;
   timeoutMs?: number;
 }
 

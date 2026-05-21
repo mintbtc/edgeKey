@@ -1,16 +1,9 @@
 import { badRequestError, externalServiceError } from "../../lib/app-error";
+import { httpPost } from "../../lib/http-client";
 import type { EmailApiConfigValue, EmailProviderAdapter, EmailSendInput, EmailSmtpConfigValue } from "./types";
 
 function normalizeBaseUrl(value: string) {
   return value.replace(/\/+$/, "");
-}
-
-async function parseJsonSafely(response: Response) {
-  try {
-    return (await response.json()) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
 }
 
 function buildBrevoPayload(config: EmailApiConfigValue, input: EmailSendInput) {
@@ -27,21 +20,18 @@ function buildBrevoPayload(config: EmailApiConfigValue, input: EmailSendInput) {
   };
 }
 
-function buildMailjetPayload(config: EmailApiConfigValue, input: EmailSendInput) {
+function buildResendPayload(config: EmailApiConfigValue, input: EmailSendInput) {
+  const from = config.fromName
+    ? `${config.fromName} <${config.fromEmail}>`
+    : config.fromEmail;
+
   return {
-    Messages: [
-      {
-        From: {
-          Email: config.fromEmail,
-          Name: config.fromName || "API Mail",
-        },
-        To: [{ Email: input.toEmail }],
-        ReplyTo: input.replyTo || config.replyTo ? { Email: input.replyTo || config.replyTo } : undefined,
-        Subject: input.subject,
-        TextPart: input.text,
-        HTMLPart: input.html || `<html><body><pre>${input.text.replace(/[&<>]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[char] || char))}</pre></body></html>`,
-      },
-    ],
+    from,
+    to: [input.toEmail],
+    reply_to: input.replyTo || config.replyTo || undefined,
+    subject: input.subject,
+    html: input.html || `<html><body><pre>${input.text.replace(/[&<>]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[char] || char))}</pre></body></html>`,
+    text: input.text,
   };
 }
 
@@ -50,55 +40,50 @@ async function sendBrevoEmail(config: EmailApiConfigValue, input: EmailSendInput
     throw badRequestError("Brevo 配置不完整", "BREVO_CONFIG_INCOMPLETE");
   }
 
-  const response = await fetch(normalizeBaseUrl(config.apiBaseUrl), {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-      "api-key": config.apiKey,
+  const { ok, status, data } = await httpPost<Record<string, unknown>>(
+    normalizeBaseUrl(config.apiBaseUrl),
+    buildBrevoPayload(config, input),
+    {
+      headers: { "api-key": config.apiKey },
+      timeoutMs: config.timeoutMs || 15000,
     },
-    body: JSON.stringify(buildBrevoPayload(config, input)),
-  });
+  );
 
-  const json = await parseJsonSafely(response);
-  if (!response.ok) {
-    throw externalServiceError(typeof json?.message === "string" ? json.message : "Brevo 发送邮件失败", "BREVO_SEND_FAILED");
+  if (!ok) {
+    const message = typeof data?.message === "string" ? data.message : "Brevo 发送邮件失败";
+    throw externalServiceError(message, "BREVO_SEND_FAILED");
   }
 
   return {
-    messageId: typeof json?.messageId === "string" ? json.messageId : undefined,
-    raw: json,
+    messageId: typeof data?.messageId === "string" ? data.messageId : undefined,
+    raw: data,
   };
 }
 
-async function sendMailjetEmail(config: EmailApiConfigValue, input: EmailSendInput) {
-  if (!config.apiBaseUrl || !config.apiKey || !config.secretKey) {
-    throw badRequestError("Mailjet 配置不完整", "MAILJET_CONFIG_INCOMPLETE");
+async function sendResendEmail(config: EmailApiConfigValue, input: EmailSendInput) {
+  if (!config.apiKey) {
+    throw badRequestError("Resend 配置不完整", "RESEND_CONFIG_INCOMPLETE");
   }
 
-  const token = btoa(`${config.apiKey}:${config.secretKey}`);
-  const response = await fetch(normalizeBaseUrl(config.apiBaseUrl), {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-      authorization: `Basic ${token}`,
+  const apiBaseUrl = config.apiBaseUrl || "https://api.resend.com";
+
+  const { ok, status, data } = await httpPost<Record<string, unknown>>(
+    `${normalizeBaseUrl(apiBaseUrl)}/emails`,
+    buildResendPayload(config, input),
+    {
+      headers: { Authorization: `Bearer ${config.apiKey}` },
+      timeoutMs: config.timeoutMs || 15000,
     },
-    body: JSON.stringify(buildMailjetPayload(config, input)),
-  });
+  );
 
-  const json = await parseJsonSafely(response);
-  if (!response.ok) {
-    throw externalServiceError(typeof json?.ErrorMessage === "string" ? json.ErrorMessage : "Mailjet 发送邮件失败", "MAILJET_SEND_FAILED");
+  if (!ok) {
+    const message = typeof data?.message === "string" ? data.message : "Resend 发送邮件失败";
+    throw externalServiceError(message, "RESEND_SEND_FAILED");
   }
-
-  const messages = Array.isArray(json?.Messages) ? json.Messages : [];
-  const firstMessage = messages[0] as { To?: Array<{ MessageID?: number }> } | undefined;
-  const messageId = firstMessage?.To?.[0]?.MessageID;
 
   return {
-    messageId: typeof messageId === "number" ? String(messageId) : undefined,
-    raw: json,
+    messageId: typeof data?.id === "string" ? data.id : undefined,
+    raw: data,
   };
 }
 
@@ -136,13 +121,15 @@ export function createSmtpEmailAdapter(config: EmailSmtpConfigValue): EmailProvi
 }
 
 export function createApiEmailAdapter(config: EmailApiConfigValue): EmailProviderAdapter {
+  const senders: Record<string, (config: EmailApiConfigValue, input: EmailSendInput) => Promise<{ messageId?: string; raw?: unknown }>> = {
+    BREVO: sendBrevoEmail,
+    RESEND: sendResendEmail,
+  };
+
   return {
     async send(input) {
-      if (config.apiProvider === "BREVO") {
-        return sendBrevoEmail(config, input);
-      }
-
-      return sendMailjetEmail(config, input);
+      const sender = senders[config.apiProvider] || sendBrevoEmail;
+      return sender(config, input);
     },
   };
 }

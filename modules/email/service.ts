@@ -60,7 +60,6 @@ const defaultApiConfig: EmailApiConfigValue = {
   replyTo: "",
   apiBaseUrl: "https://api.brevo.com/v3/smtp/email",
   apiKey: "",
-  secretKey: "",
   timeoutMs: 10000,
   ...defaultPushSettings,
 };
@@ -187,7 +186,7 @@ function buildHtmlContent(text: string) {
 async function createLog(prisma: PrismaClient, input: {
   orderId?: number;
   provider: EmailChannel;
-  apiProvider?: "BREVO" | "MAILJET" | null;
+  apiProvider?: string | null;
   scene: EmailScene;
   status: "SUCCESS" | "FAILED";
   toEmail: string;
@@ -392,7 +391,7 @@ export async function getEmailManagementData(prisma?: PrismaClient) {
   const logs: EmailLogItem[] = logRecords.map((item: EmailLogRecord) => ({
     id: item.id,
     provider: item.provider as EmailChannel,
-    apiProvider: item.apiProvider as "BREVO" | "MAILJET" | null,
+    apiProvider: item.apiProvider as string | null,
     scene: item.scene as EmailScene,
     status: item.status,
     toEmail: item.toEmail,
@@ -509,7 +508,6 @@ function buildConfigJson(input: EmailConfigValue): Record<string, unknown> {
       replyTo: apiInput.replyTo?.trim() || "",
       apiBaseUrl: apiInput.apiBaseUrl.trim(),
       apiKey: apiInput.apiKey?.trim() || "",
-      secretKey: apiInput.secretKey?.trim() || "",
       timeoutMs: Number(apiInput.timeoutMs || 10000),
       customerSendOrderPaidEmail: Boolean(apiInput.customerSendOrderPaidEmail),
       customerSendDeliverySuccessEmail: Boolean(apiInput.customerSendDeliverySuccessEmail),

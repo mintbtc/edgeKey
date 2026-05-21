@@ -41,7 +41,7 @@ export function validateEmailConfigInput(input: any) {
 
   if (provider === "API") {
     const apiProvider = input.apiProvider?.trim().toUpperCase() || "";
-    if (!["BREVO", "MAILJET"].includes(apiProvider)) {
+    if (!["BREVO", "RESEND"].includes(apiProvider)) {
       throw badRequestError("API 服务商不正确", "EMAIL_API_PROVIDER_INVALID");
     }
 
@@ -54,14 +54,10 @@ export function validateEmailConfigInput(input: any) {
       throw badRequestError("必须填写 API Key", "EMAIL_API_KEY_REQUIRED");
     }
 
-    if (apiProvider === "MAILJET" && !(input.secretKey?.trim())) {
-      throw badRequestError("Mailjet 必须填写 Secret Key", "MAILJET_SECRET_REQUIRED");
-    }
-
     return {
       provider: "API" as const,
       fromEmail,
-      apiProvider: apiProvider as "BREVO" | "MAILJET",
+      apiProvider: apiProvider,
       apiBaseUrl,
       ...flags,
     };

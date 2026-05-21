@@ -152,7 +152,7 @@
           <!-- 名称 -->
           <label class="flex flex-col gap-1.5">
             <span class="label-text font-medium">邮局名称 (可选，留空自动生成)</span>
-            <input v-model="configForm.name" class="input input-bordered w-full" placeholder="例如：Mailjet 主账号" />
+            <input v-model="configForm.name" class="input input-bordered w-full" placeholder="例如：Resend 主账号" />
           </label>
 
           <!-- 类型选择 -->
@@ -173,7 +173,7 @@
               <span class="label-text font-medium">API 服务商</span>
               <select v-model="configForm.apiProvider" class="select select-bordered w-full">
                 <option value="BREVO">Brevo</option>
-                <option value="MAILJET">Mailjet</option>
+                <option value="RESEND">Resend</option>
               </select>
             </label>
             <label class="flex flex-col gap-1.5">
@@ -190,15 +190,11 @@
             </label>
             <label class="flex flex-col gap-1.5">
               <span class="label-text font-medium">API 地址</span>
-              <input v-model="configForm.apiBaseUrl" class="input input-bordered w-full" :placeholder="configForm.apiProvider === 'BREVO' ? 'https://api.brevo.com/v3/smtp/email' : 'https://api.mailjet.com/v3.1/send'" />
+              <input v-model="configForm.apiBaseUrl" class="input input-bordered w-full" :placeholder="configForm.apiProvider === 'BREVO' ? 'https://api.brevo.com/v3/smtp/email' : 'https://api.resend.com'" />
             </label>
             <label class="flex flex-col gap-1.5">
               <span class="label-text font-medium">API Key</span>
-              <SecretInput v-model="configForm.apiKey" />
-            </label>
-            <label class="flex flex-col gap-1.5">
-              <span class="label-text font-medium">Secret Key</span>
-              <SecretInput v-model="configForm.secretKey" :disabled="configForm.apiProvider !== 'MAILJET'" :placeholder="configForm.apiProvider === 'MAILJET' ? 'Mailjet Secret Key' : 'Brevo 不需要该字段'" />
+              <SecretInput v-model="configForm.apiKey" :placeholder="configForm.apiProvider === 'RESEND' ? 're_xxxxxxxxx' : ''" />
             </label>
             <label class="flex flex-col gap-1.5">
               <span class="label-text font-medium">超时(ms)</span>
@@ -477,7 +473,7 @@ import StatusTag from "../../../components/StatusTag.vue";
 import ConfirmDialog from "../../../components/ConfirmDialog.vue";
 import DataTable from "../../../components/DataTable.vue";
 import { normalizeTelefuncError } from "../../../lib/app-error";
-import { reactive, ref, computed, useTemplateRef } from "vue";
+import { reactive, ref, computed, watch, useTemplateRef } from "vue";
 import { useData } from "vike-vue/useData";
 import { onSaveEmailConfig, onDeleteEmailConfig, onSaveEmailPushSettings, onActivateEmailProvider, onClearEmailLogs } from "./saveEmailConfig.telefunc";
 import { onSaveEmailTemplate, onResetEmailTemplate } from "./saveEmailTemplate.telefunc";
@@ -497,7 +493,6 @@ type MailboxItem = {
   apiProvider?: string;
   apiBaseUrl?: string;
   apiKey?: string;
-  secretKey?: string;
   timeoutMs?: number;
   // SMTP fields
   smtpHost?: string;
@@ -590,10 +585,9 @@ interface ConfigFormState {
   fromName: string;
   replyTo: string;
   // API
-  apiProvider: "BREVO" | "MAILJET";
+  apiProvider: string;
   apiBaseUrl: string;
   apiKey: string;
-  secretKey: string;
   timeoutMs: number;
   // SMTP
   smtpHost: string;
@@ -618,7 +612,6 @@ function createEmptyForm(): ConfigFormState {
     apiProvider: "BREVO",
     apiBaseUrl: "https://api.brevo.com/v3/smtp/email",
     apiKey: "",
-    secretKey: "",
     timeoutMs: 10000,
     smtpHost: "",
     smtpPort: 587,
@@ -633,6 +626,23 @@ function createEmptyForm(): ConfigFormState {
 }
 
 const configForm = reactive<ConfigFormState>(createEmptyForm());
+
+// API 服务商默认地址映射
+const API_PROVIDER_URLS: Record<string, string> = {
+  BREVO: "https://api.brevo.com/v3/smtp/email",
+  RESEND: "https://api.resend.com",
+};
+
+// 切换 API 服务商时自动填充默认地址
+watch(
+  () => configForm.apiProvider,
+  (provider) => {
+    const defaultUrl = API_PROVIDER_URLS[provider];
+    if (defaultUrl && (!configForm.apiBaseUrl || Object.values(API_PROVIDER_URLS).includes(configForm.apiBaseUrl))) {
+      configForm.apiBaseUrl = defaultUrl;
+    }
+  },
+);
 
 function openCreateDialog() {
   editingId.value = null;
@@ -653,7 +663,6 @@ function openEditDialog(item: MailboxItem) {
     apiProvider: (item as any).apiProvider || "BREVO",
     apiBaseUrl: (item as any).apiBaseUrl || "",
     apiKey: (item as any).apiKey || "",
-    secretKey: (item as any).secretKey || "",
     timeoutMs: (item as any).timeoutMs || 10000,
     smtpHost: (item as any).smtpHost || "",
     smtpPort: (item as any).smtpPort || 587,
@@ -796,7 +805,6 @@ async function handleSaveConfig() {
       payload.apiProvider = configForm.apiProvider;
       payload.apiBaseUrl = configForm.apiBaseUrl;
       payload.apiKey = configForm.apiKey;
-      payload.secretKey = configForm.secretKey;
       payload.timeoutMs = configForm.timeoutMs;
     } else if (configForm.provider === "SMTP") {
       payload.smtpHost = configForm.smtpHost;
