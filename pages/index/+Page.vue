@@ -72,77 +72,60 @@
         </button>
       </div>
 
-      <div v-if="filteredProducts.length" class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <article v-for="product in filteredProducts" :key="product.id" class="card relative h-[386px] origin-top scale-[0.92] shadow-2xl overflow-hidden group rounded-[18px] bg-gray-900 hover:-translate-y-1 transition-all duration-300">
+      <div v-if="filteredProducts.length" class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <article v-for="product in filteredProducts" :key="product.id" class="card bg-base-100 shadow-sm hover:shadow-md transition-all duration-300 group rounded-xl overflow-hidden border border-base-200 cursor-pointer">
 
-          <!-- 1. 商品背景图片（全幅插画风格，悬停微动） -->
-          <div
-            class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-700 group-hover:scale-105"
-            :style="{ backgroundImage: `url(${product.coverImage || emptyCoverUrl})` }"
-          ></div>
-
-          <!-- 2. 边框层（你的 border.png，铺满全层） -->
-          <img class="pointer-events-none absolute inset-0 z-10 h-full w-full object-fill opacity-95" src="../../assets/border.png" alt="border" />
-
-
-          <div class="relative z-20 flex items-start justify-between px-5 pt-[46px] pl-10">
-            <div class="absolute -top-6 right-1 flex items-center rounded-sm bg-gradient-to-b from-gray-100 to-gray-300 px-2.5 py-0.5 text-[11px] font-black italic tracking-wider text-gray-800 shadow-[1px_1px_2px_rgba(0,0,0,0.4)] border border-gray-400">
-              {{ product.categoryName || 'Basic' }}
-            </div>
-
-            <div class="flex flex-col items-start gap-0.5 relative">
-              <p class="text-[22px] leading-none font-black italic tracking-widest text-white ml-2 mt-1" style="text-shadow: 2px 2px 0 #000, -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000, 3px 3px 4px rgba(0,0,0,0.5);">
-                {{ product.name }}
-              </p>
-            </div>
-          </div>
-
-          <!-- 4. 底部技能栏 (作为“查看详情”按钮) -->
-          <div class="relative z-20 mt-auto flex flex-col justify-end pb-15">
-            <!-- 技能条带横幅 -->
-            <a :href="`/product/${product.slug}`" class="group/btn relative flex w-full items-center justify-between border-y-2 border-white/40 bg-gradient-to-r from-black/60 via-black/30 to-black/60 px-5 py-3 backdrop-blur-sm transition-colors hover:bg-black/50">
-              <div class="flex items-center gap-3">
-                <!-- 能量图标 (用 CSS 画出类似宝可梦的能量球) -->
-                <div class="flex gap-1">
-                  <div class="flex size-6 items-center justify-center rounded-full border-2 border-white bg-yellow-400 shadow-[0_2px_4px_rgba(0,0,0,0.8)]"><div class="size-2.5 rounded-full bg-yellow-600"></div></div>
-                  <div class="flex size-6 items-center justify-center rounded-full border-2 border-white bg-sky-400 shadow-[0_2px_4px_rgba(0,0,0,0.8)]"><div class="size-2.5 rounded-full bg-sky-600"></div></div>
-                </div>
-                <!-- 技能文字 -->
-                <span class="text-xl font-black tracking-widest text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)] group-hover/btn:text-yellow-300 transition-colors">
-                  查看详情
-                </span>
-              </div>
-              <!-- 伤害值 / 箭头 -->
-              <span class="text-2xl font-black text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">
-                ➤
+          <!-- 商品图片 -->
+          <figure class="relative pt-[100%] overflow-hidden">
+            <img
+              :src="product.coverImage || emptyCoverUrl"
+              :alt="product.name"
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <!-- 分类标签 -->
+            <div class="absolute top-2.5 left-2.5">
+              <span class="badge badge-primary badge-sm font-semibold rounded">
+                {{ product.categoryName || '默认' }}
               </span>
-            </a>
+            </div>
+          </figure>
 
-            <!-- 商品状态区域 -->
-            <div class="mt-3 text-center">
-                <div
-                    v-if="product.deliveryType === 'CARD_AUTO'"
-                    class="absolute left-5 text-sm font-bold tracking-wide px-2 py-1 rounded-full shadow-lg border"
-                    :class="lowStock(product) ? 'bg-amber-500/90 text-white border-amber-400' : 'bg-gray-800/90 text-gray-200 border-gray-600'"
-                >
-                    {{ product.availableStock === 0 ? '已售罄' : lowStock(product) ? `库存紧张(${product.availableStock})` : '有库存' }}
-                </div>
-                <div
-                    v-else-if="product.deliveryType === 'FIXED_CARD'"
-                    class="absolute left-5 text-sm font-bold tracking-wide px-2 py-1 rounded-full shadow-lg border bg-emerald-500/90 text-white border-emerald-400"
-                >
-                    有库存
-                </div>
-                <div
-                    v-else-if="product.deliveryType === 'MANUAL'"
-                    class="absolute left-5 text-sm font-bold tracking-wide px-2 py-1 rounded-full shadow-lg border bg-sky-500/90 text-white border-sky-400"
-                >
-                    人工发货
-                </div>
-                <div class="flex items-end gap-0.5 font-black text-red-500 absolute right-6" style="text-shadow: 2px 2px 0 #fff, -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff, 2px 2px 4px rgba(0,0,0,0.3);">
-                    <span class="text-sm font-bold italic text-red-600 mb-1">¥</span>
-                    <span class="text-3xl italic leading-none tracking-tighter">{{ formatCents(product.price) }}</span>
-                </div>
+          <!-- 商品信息 -->
+          <div class="card-body p-3">
+            <!-- 库存状态标签 + 商品名称 -->
+            <div class="flex items-start gap-1.5">
+              <span
+                v-if="product.deliveryType === 'CARD_AUTO'"
+                class="text-xs font-medium px-1.5 py-0.5 rounded shrink-0 mt-0.5"
+                :class="{
+                  'bg-amber-500/10 text-amber-600': lowStock(product),
+                  'bg-emerald-500/10 text-emerald-600': !lowStock(product) && product.availableStock > 0,
+                  'bg-red-500/10 text-red-600': product.availableStock === 0
+                }"
+              >
+                {{ product.availableStock === 0 ? '已售罄' : lowStock(product) ? `紧张(${product.availableStock})` : '有货' }}
+              </span>
+              <span
+                v-else-if="product.deliveryType === 'FIXED_CARD'"
+                class="text-xs font-medium px-1.5 py-0.5 rounded shrink-0 mt-0.5 bg-emerald-500/10 text-emerald-600"
+              >
+                有货
+              </span>
+              <span
+                v-else-if="product.deliveryType === 'MANUAL'"
+                class="text-xs font-medium px-1.5 py-0.5 rounded shrink-0 mt-0.5 bg-sky-500/10 text-sky-600"
+              >
+                人工发货
+              </span>
+              <h3 class="card-title text-sm font-semibold line-clamp-2 text-base-content flex-1 min-w-0">
+                {{ product.name }}
+              </h3>
+            </div>
+
+            <!-- 价格 -->
+            <div class="flex items-baseline gap-0.5 mt-2">
+              <span class="text-xs font-bold text-red-500">¥</span>
+              <span class="text-xl font-bold text-red-500 leading-none">{{ formatCents(product.price) }}</span>
             </div>
           </div>
 
@@ -187,14 +170,5 @@ const lowStock = (product: ProductSummary) => {
   top: -35px;
   right: -22px;
   z-index: 2;
-}
-.border-img {
-  position: absolute;
-  top: -10px;
-  pointer-events: none;
-}
-.reflect-below {
-  /* 语法: 方向 间距 渐变效果 */
-  -webkit-box-reflect: below 2px linear-gradient(transparent, rgba(0,0,0,0.2));
 }
 </style>
