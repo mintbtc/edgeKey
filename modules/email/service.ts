@@ -178,13 +178,14 @@ function buildDeliveryItems(items: string[]) {
   return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
 }
 
+
 function buildHtmlContent(text: string, scene?: EmailScene, siteName?: string) {
   // 根据场景选择不同的图标和颜色
-  const sceneConfig: Record<EmailScene, { icon: string; color: string; bgColor: string }> = {
-    TEST: { icon: "📧", color: "rgb(33, 150, 243)", bgColor: "linear-gradient(135deg, rgb(33, 150, 243) 0%, rgb(66, 133, 244) 100%)" },
-    ORDER_PAID: { icon: "✓", color: "rgb(40, 167, 69)", bgColor: "linear-gradient(135deg, rgb(40, 167, 69) 0%, rgb(76, 175, 80) 100%)" },
-    DELIVERY_SUCCESS: { icon: "📦", color: "rgb(40, 167, 69)", bgColor: "linear-gradient(135deg, rgb(40, 167, 69) 0%, rgb(76, 175, 80) 100%)" },
-    DELIVERY_FAILED: { icon: "⚠️", color: "rgb(244, 67, 54)", bgColor: "linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)" },
+  const sceneConfig: Record<EmailScene, { icon: string; color: string; bgColor: string; titleIcon: string }> = {
+    TEST: { icon: "✓", color: "rgb(40, 167, 69)", bgColor: "rgb(40, 167, 69)", titleIcon: "📧" },
+    ORDER_PAID: { icon: "✓", color: "rgb(40, 167, 69)", bgColor: "rgb(40, 167, 69)", titleIcon: "1" },
+    DELIVERY_SUCCESS: { icon: "✓", color: "rgb(40, 167, 69)", bgColor: "rgb(40, 167, 69)", titleIcon: "2" },
+    DELIVERY_FAILED: { icon: "✗", color: "rgb(244, 67, 54)", bgColor: "rgb(244, 67, 54)", titleIcon: "⚠️" },
   };
 
   const config = scene ? sceneConfig[scene] : sceneConfig.TEST;
@@ -192,38 +193,106 @@ function buildHtmlContent(text: string, scene?: EmailScene, siteName?: string) {
 
   // 将纯文本转换为HTML段落
   const lines = text.split("\n").filter(line => line.trim());
-  const contentHtml = lines.map(line => {
+  
+  // 分离标题和内容
+  let contentParts: { type: 'title' | 'section' | 'text' | 'list' | 'link' | 'warning'; content: string }[] = [];
+  let currentSection: string[] = [];
+  
+  lines.forEach((line) => {
     const trimmed = line.trim();
-    // 检测是否是标题行（包含冒号且较短）
-    if (trimmed.includes(":") || trimmed.includes("：")) {
-      const parts = trimmed.split(/[:：]/);
-      if (parts.length === 2 && parts[0].length < 20) {
-        return `<div style="line-height: 1.6; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgb(233, 236, 239); font-family: 'Microsoft YaHei', Arial, sans-serif;"><span style="color: rgb(73, 80, 87); font-weight: 600;">${parts[0]}：</span><span style="color: rgb(44, 62, 80); font-weight: 500;">${parts[1]}</span></div>`;
+    
+    // 检测是否是标题（以【】开头或包含特定关键词）
+    if (trimmed.startsWith("【") || trimmed.includes("详情") || trimmed.includes("内容")) {
+      if (currentSection.length > 0) {
+        contentParts.push({ type: 'section', content: currentSection.join("\n") });
+        currentSection = [];
       }
+      contentParts.push({ type: 'title', content: trimmed });
+      return;
     }
+    
+    // 检测是否是温馨提示
+    if (trimmed.includes("温馨提示") || trimmed.includes("注意")) {
+      if (currentSection.length > 0) {
+        contentParts.push({ type: 'section', content: currentSection.join("\n") });
+        currentSection = [];
+      }
+      contentParts.push({ type: 'warning', content: trimmed });
+      return;
+    }
+    
     // 检测是否是链接
     if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-      return `<div style="text-align: center; line-height: 1.6; margin: 15px 0px; font-family: 'Microsoft YaHei', Arial, sans-serif;"><a href="${trimmed}" style="color: ${config.color}; text-decoration: none; display: inline-block; padding: 10px 20px; background-color: ${config.color}; border-radius: 6px; color: white;">🔗 点击查看详情</a></div>`;
+      contentParts.push({ type: 'link', content: trimmed });
+      return;
     }
+    
     // 检测是否是列表项
     if (trimmed.match(/^\d+\./)) {
-      return `<div style="line-height: 1.6; margin-bottom: 8px; font-family: 'Microsoft YaHei', Arial, sans-serif; color: rgb(51, 51, 51);">${trimmed}</div>`;
+      contentParts.push({ type: 'list', content: trimmed });
+      return;
     }
-    // 普通文本
-    return `<p style="line-height: 1.6; margin-bottom: 12px; font-family: 'Microsoft YaHei', Arial, sans-serif; color: rgb(51, 51, 51);">${trimmed}</p>`;
+    
+    currentSection.push(trimmed);
+  });
+  
+  if (currentSection.length > 0) {
+    contentParts.push({ type: 'section', content: currentSection.join("\n") });
+  }
+
+  // 生成HTML内容
+  const contentHtml = contentParts.map((part) => {
+    switch (part.type) {
+      case 'title':
+        return `<div style="margin-bottom: 20px;"><h3 style="line-height: 1.6; margin: 0px; font-size: 16px; color: rgb(44, 62, 80); font-weight: 600;"><span style="font-family: 'Microsoft YaHei', Arial, sans-serif;">📋 ${part.content}</span></h3></div>`;
+      
+      case 'section':
+        const sectionLines = part.content.split("\n");
+        const sectionContent = sectionLines.map((line) => {
+          const trimmed = line.trim();
+          if (trimmed.includes(":") || trimmed.includes("：")) {
+            const parts = trimmed.split(/[:：]/);
+            if (parts.length === 2 && parts[0].length < 20) {
+              return `<div style="line-height: 1.6; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgb(233, 236, 239); font-family: 'Microsoft YaHei', Arial, sans-serif;"><span style="color: rgb(73, 80, 87); font-weight: 600;">${parts[0]}：</span><span style="color: rgb(44, 62, 80);">${parts[1]}</span></div>`;
+            }
+          }
+          return `<p style="line-height: 1.6; margin-bottom: 12px; font-family: 'Microsoft YaHei', Arial, sans-serif; color: rgb(51, 51, 51);">${trimmed}</p>`;
+        }).join("\n");
+        return `<div style="background-color: rgb(255, 255, 255); margin-bottom: 20px; padding: 20px; border-radius: 8px; border-left: 4px solid ${config.color}; font-family: 'Microsoft YaHei', Arial, sans-serif;">${sectionContent}</div>`;
+      
+      case 'link':
+        return `<div style="text-align: center; line-height: 1.6; margin: 20px 0px;"><a href="${part.content}" style="text-decoration: none; display: inline-block; padding: 10px 30px; background-color: ${config.color}; border-radius: 6px; font-family: 'Microsoft YaHei', Arial, sans-serif; font-size: 14px; font-weight: 600; color: white;">🔗 查询地址</a></div>`;
+      
+      case 'list':
+        return `<div style="line-height: 1.6; margin-bottom: 8px; font-family: 'Microsoft YaHei', Arial, sans-serif; color: rgb(51, 51, 51);">${part.content}</div>`;
+      
+      case 'warning':
+        return `<div style="line-height: 1.6; background-color: rgb(232, 245, 254); margin-top: 20px; padding: 15px; border: 1px solid rgb(147, 206, 226); border-radius: 6px; font-family: 'Microsoft YaHei', Arial, sans-serif; color: rgb(12, 84, 96);"><b>温馨提示：</b>${part.content.replace("温馨提示：", "").replace("温馨提示:", "")}</div>`;
+      
+      case 'text':
+      default:
+        return `<p style="line-height: 1.6; margin-bottom: 12px; font-family: 'Microsoft YaHei', Arial, sans-serif; color: rgb(51, 51, 51);">${part.content}</p>`;
+    }
   }).join("\n");
 
   return `<div style="background-color: rgb(245, 245, 245); margin: 0px; padding: 20px;">
-<div style="background-color: rgb(255, 255, 255); margin: 0px auto; border-radius: 10px; max-width: 600px;">
-<div style="background: ${config.bgColor}; padding: 30px 20px;">
-<div style="text-align: center; line-height: 1.6; background-color: rgba(255, 255, 255, 0.2); margin: 0px auto 15px; border-radius: 50%; font-family: 'Microsoft YaHei', Arial, sans-serif; font-size: 24px; color: white; width: 60px; height: 60px; line-height: 60px;">${config.icon}</div>
-<h1 style="text-align: center; line-height: 1.6; margin: 0px; font-size: 24px; font-weight: 300;"><span style="font-family: 'Microsoft YaHei', Arial, sans-serif; color: white;">${displayName}</span></h1>
+<div style="background-color: rgb(255, 255, 255); margin: 0px auto; border-radius: 8px; max-width: 600px; overflow: hidden;">
+<div style="background-color: ${config.bgColor}; padding: 25px 20px;">
+<div style="text-align: center; margin-bottom: 10px;">
+<span style="display: inline-block; width: 36px; height: 36px; line-height: 36px; background-color: white; border-radius: 50%; font-family: 'Microsoft YaHei', Arial, sans-serif; font-size: 18px; font-weight: bold; color: ${config.bgColor};">${config.titleIcon}</span>
 </div>
-<div style="padding: 40px 30px;">
+<h1 style="text-align: center; line-height: 1.6; margin: 0px; font-size: 22px; font-weight: 500;"><span style="font-family: 'Microsoft YaHei', Arial, sans-serif; color: white;">${displayName}</span></h1>
+</div>
+<div style="padding: 30px;">
+<div style="background-color: ${config.bgColor}; margin: 0px -30px 30px -30px; padding: 15px; text-align: center;">
+<span style="font-size: 36px; color: white;">${config.icon}</span>
+</div>
+<p style="line-height: 1.6; margin-bottom: 15px; font-family: 'Microsoft YaHei', Arial, sans-serif; color: rgb(51, 51, 51);">尊敬的用户，您好！</p>
 ${contentHtml}
 </div>
 <div style="background-color: rgb(248, 249, 250); padding: 25px 30px; border-top: 1px solid rgb(233, 236, 239);">
 <p style="text-align: center; line-height: 1.6; margin: 5px 0px; font-size: 14px; color: rgb(108, 117, 125);"><span style="font-family: 'Microsoft YaHei', Arial, sans-serif;">感谢您选择我们的服务！</span></p>
+<p style="text-align: center; line-height: 1.6; margin: 5px 0px; font-size: 14px; color: rgb(108, 117, 125);"><span style="font-family: 'Microsoft YaHei', Arial, sans-serif;">如有任何疑问，请访问 </span><span style="font-family: 'Microsoft YaHei', Arial, sans-serif; color: ${config.color}; font-weight: 500;">${displayName}</span><span style="font-family: 'Microsoft YaHei', Arial, sans-serif;">&nbsp;或联系客服</span></p>
 <p style="text-align: center; line-height: 1.6; margin: 15px 0px 5px; font-size: 12px; color: rgb(173, 181, 189);"><span style="font-family: 'Microsoft YaHei', Arial, sans-serif;">此邮件为系统自动发送，请勿回复</span></p>
 </div>
 </div>
