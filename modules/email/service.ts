@@ -178,9 +178,56 @@ function buildDeliveryItems(items: string[]) {
   return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
 }
 
-function buildHtmlContent(text: string) {
-  const escaped = text.replace(/[&<>]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[char] || char));
-  return `<html><body><pre style="white-space:pre-wrap;font-family:ui-monospace, SFMono-Regular, monospace;">${escaped}</pre></body></html>`;
+function buildHtmlContent(text: string, scene?: EmailScene, siteName?: string) {
+  // 根据场景选择不同的图标和颜色
+  const sceneConfig: Record<EmailScene, { icon: string; color: string; bgColor: string }> = {
+    TEST: { icon: "📧", color: "rgb(33, 150, 243)", bgColor: "linear-gradient(135deg, rgb(33, 150, 243) 0%, rgb(66, 133, 244) 100%)" },
+    ORDER_PAID: { icon: "✓", color: "rgb(40, 167, 69)", bgColor: "linear-gradient(135deg, rgb(40, 167, 69) 0%, rgb(76, 175, 80) 100%)" },
+    DELIVERY_SUCCESS: { icon: "📦", color: "rgb(40, 167, 69)", bgColor: "linear-gradient(135deg, rgb(40, 167, 69) 0%, rgb(76, 175, 80) 100%)" },
+    DELIVERY_FAILED: { icon: "⚠️", color: "rgb(244, 67, 54)", bgColor: "linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)" },
+  };
+
+  const config = scene ? sceneConfig[scene] : sceneConfig.TEST;
+  const displayName = siteName || "52购物商城";
+
+  // 将纯文本转换为HTML段落
+  const lines = text.split("\n").filter(line => line.trim());
+  const contentHtml = lines.map(line => {
+    const trimmed = line.trim();
+    // 检测是否是标题行（包含冒号且较短）
+    if (trimmed.includes(":") || trimmed.includes("：")) {
+      const parts = trimmed.split(/[:：]/);
+      if (parts.length === 2 && parts[0].length < 20) {
+        return `<div style="line-height: 1.6; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgb(233, 236, 239); font-family: 'Microsoft YaHei', Arial, sans-serif;"><span style="color: rgb(73, 80, 87); font-weight: 600;">${parts[0]}：</span><span style="color: rgb(44, 62, 80); font-weight: 500;">${parts[1]}</span></div>`;
+      }
+    }
+    // 检测是否是链接
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return `<div style="text-align: center; line-height: 1.6; margin: 15px 0px; font-family: 'Microsoft YaHei', Arial, sans-serif;"><a href="${trimmed}" style="color: ${config.color}; text-decoration: none; display: inline-block; padding: 10px 20px; background-color: ${config.color}; border-radius: 6px; color: white;">🔗 点击查看详情</a></div>`;
+    }
+    // 检测是否是列表项
+    if (trimmed.match(/^\d+\./)) {
+      return `<div style="line-height: 1.6; margin-bottom: 8px; font-family: 'Microsoft YaHei', Arial, sans-serif; color: rgb(51, 51, 51);">${trimmed}</div>`;
+    }
+    // 普通文本
+    return `<p style="line-height: 1.6; margin-bottom: 12px; font-family: 'Microsoft YaHei', Arial, sans-serif; color: rgb(51, 51, 51);">${trimmed}</p>`;
+  }).join("\n");
+
+  return `<div style="background-color: rgb(245, 245, 245); margin: 0px; padding: 20px;">
+<div style="background-color: rgb(255, 255, 255); margin: 0px auto; border-radius: 10px; max-width: 600px;">
+<div style="background: ${config.bgColor}; padding: 30px 20px;">
+<div style="text-align: center; line-height: 1.6; background-color: rgba(255, 255, 255, 0.2); margin: 0px auto 15px; border-radius: 50%; font-family: 'Microsoft YaHei', Arial, sans-serif; font-size: 24px; color: white; width: 60px; height: 60px; line-height: 60px;">${config.icon}</div>
+<h1 style="text-align: center; line-height: 1.6; margin: 0px; font-size: 24px; font-weight: 300;"><span style="font-family: 'Microsoft YaHei', Arial, sans-serif; color: white;">${displayName}</span></h1>
+</div>
+<div style="padding: 40px 30px;">
+${contentHtml}
+</div>
+<div style="background-color: rgb(248, 249, 250); padding: 25px 30px; border-top: 1px solid rgb(233, 236, 239);">
+<p style="text-align: center; line-height: 1.6; margin: 5px 0px; font-size: 14px; color: rgb(108, 117, 125);"><span style="font-family: 'Microsoft YaHei', Arial, sans-serif;">感谢您选择我们的服务！</span></p>
+<p style="text-align: center; line-height: 1.6; margin: 15px 0px 5px; font-size: 12px; color: rgb(173, 181, 189);"><span style="font-family: 'Microsoft YaHei', Arial, sans-serif;">此邮件为系统自动发送，请勿回复</span></p>
+</div>
+</div>
+</div>`;
 }
 
 async function createLog(prisma: PrismaClient, input: {
