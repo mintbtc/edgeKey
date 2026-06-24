@@ -11,6 +11,7 @@ import { closeOrderRecord, createOrderRecord, findOrderById, findOrderWithProduc
 import { generateOrderNo, generateQueryToken } from "./number";
 import { logger } from "../../lib/logger";
 import { validateDiscountCode, calculateDiscount, applyDiscountCode } from "../discount/service";
+import { notifyOrderPaid } from "../email/service";
 
 function getOrderContext() {
   return getContext<{ prisma: PrismaClient }>();
@@ -148,6 +149,27 @@ export async function createOrder(input: {
       await applyDiscountCode(discountCodeId, prisma);
     }
 
+    // 发送支付成功通知邮件
+    if (input.contactType === "EMAIL" && contactValue) {
+      try {
+        await notifyOrderPaid({
+          prisma,
+          orderId: order.id,
+          orderNo: order.orderNo,
+          queryToken: order.queryToken,
+          productName: order.productNameSnapshot,
+          amount: order.amount,
+          toEmail: contactValue,
+          buyerNote: order.buyerNote,
+        });
+      } catch (error) {
+        logger.error(error instanceof Error ? error : new Error(String(error)), {
+          event: "email.order_paid.failed",
+          orderNo: order.orderNo,
+        });
+      }
+    }
+    
     // 执行发货
     try {
       await deliverOrder(prisma, order.orderNo);
