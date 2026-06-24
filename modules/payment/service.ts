@@ -71,6 +71,14 @@ const defaultPaymentConfigs: Record<PaymentProvider, PaymentConfigValue> = {
     notifyUrl: "/api/payments/stripe/notify",
     returnUrl: "/order/{orderNo}?token={token}",
   },
+  FREE_PAY: {
+    provider: "FREE_PAY",
+    name: "免费支付",
+    isEnabled: true,
+    baseUrl: "",
+    notifyUrl: "",
+    returnUrl: "",
+  },  
 };
 
 function getPaymentContext() {
