@@ -12,7 +12,7 @@ export async function data(pageContext: {
 
   const paymentMethods = product
     ? (await listEnabledPaymentMethods(pageContext.prisma))
-      .filter((item) => item.enabled && item.provider !== "FREE_PAY")
+      .filter((item) => item.enabled)
       .sort((a, b) => Number(b.provider === "EPAY") - Number(a.provider === "EPAY"))
     : [];
 
