@@ -274,6 +274,7 @@ bun run dev
 
 感谢下列开源项目
 - [Ebpusdt](https://github.com/v03413/BEpusdt) — 加密货币交易支持
+- [HashPay](https://github.com/TGDash/HashPay) — 一款运行在 Cloudflare Wokers 上的加密货币收款网关
 - [worker-mailer](https://github.com/zou-yu/worker-mailer) — Workers环境SMTP邮件支持
 
 
