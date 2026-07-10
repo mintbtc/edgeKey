@@ -87,6 +87,7 @@ const defaultPaymentConfigs: Record<PaymentProvider, PaymentConfigValue> = {
     baseUrl: "",
     hashpayMerchantId: "",
     hashpayPrivateKey: "",
+    hashpayCurrency: "CNY",
     notifyUrl: "/api/payments/hashpay/notify",
     returnUrl: "/order/{orderNo}?token={token}",
   },
@@ -168,6 +169,7 @@ export async function savePaymentConfig(input: PaymentConfigValue) {
     stripeCurrency: input.stripeCurrency?.trim() || "cny",
     hashpayMerchantId: input.hashpayMerchantId?.trim() || "",
     hashpayPrivateKey: input.hashpayPrivateKey?.trim() || "",
+    hashpayCurrency: input.hashpayCurrency?.trim() || "CNY",
   };
 
   const record = await upsertPaymentConfigRecord(prisma, input.provider, {

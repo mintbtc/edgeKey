@@ -26,4 +26,5 @@ export interface PaymentConfigValue {
   stripeCurrency?: string;
   hashpayMerchantId?: string;
   hashpayPrivateKey?: string;
+  hashpayCurrency?: string;
 }

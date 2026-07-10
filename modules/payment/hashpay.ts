@@ -6,6 +6,7 @@ interface HashpayConfig {
   baseUrl: string;
   hashpayMerchantId?: string;
   hashpayPrivateKey?: string;
+  hashpayCurrency?: string;
 }
 
 function normalizeBaseUrl(value: string) {
@@ -152,7 +153,7 @@ export function createHashpayAdapter(config: HashpayConfig): PaymentProviderAdap
       const requestBody = JSON.stringify({
         merchantNo: input.orderNo,
         amount: input.amount / 100, // 转换为元
-        currency: "USD",
+        currency: config.hashpayCurrency?.trim() || "CNY",
         description: input.productName,
         return_url: input.returnUrl,
       });

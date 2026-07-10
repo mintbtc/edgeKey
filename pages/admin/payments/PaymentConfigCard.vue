@@ -82,7 +82,7 @@ const extraFieldsMap: Record<string, () => Record<string, any>> = {
   ALIPAY: () => ({ alipayAppId: props.initialValue?.alipayAppId ?? '', alipayPrivateKey: props.initialValue?.alipayPrivateKey ?? '', alipayPublicKey: props.initialValue?.alipayPublicKey ?? '' }),
   ALIPAY_FACE: () => ({ alipayAppId: props.initialValue?.alipayAppId ?? '', alipayPrivateKey: props.initialValue?.alipayPrivateKey ?? '', alipayPublicKey: props.initialValue?.alipayPublicKey ?? '' }),
   STRIPE: () => ({ stripeSecretKey: props.initialValue?.stripeSecretKey ?? '', stripeWebhookSecret: props.initialValue?.stripeWebhookSecret ?? '', stripeCurrency: props.initialValue?.stripeCurrency ?? 'cny' }),
-  HASHPAY: () => ({ hashpayMerchantId: props.initialValue?.hashpayMerchantId ?? '', hashpayPrivateKey: props.initialValue?.hashpayPrivateKey ?? '' }),
+  HASHPAY: () => ({ hashpayMerchantId: props.initialValue?.hashpayMerchantId ?? '', hashpayPrivateKey: props.initialValue?.hashpayPrivateKey ?? '', hashpayCurrency: props.initialValue?.hashpayCurrency ?? 'CNY' }),
 };
 const extraFields = reactive((extraFieldsMap[props.provider] ?? extraFieldsMap.EPAY)());
 

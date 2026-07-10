@@ -9,6 +9,7 @@
 ### Bug Fixes
 
 - **payment:** 修复 Telefunc 错误处理将 500 错误伪装为 403 的问题，改为透传原生错误响应
+- **payment:** 修复 HashPay 支付货币写死为 USD 的问题，默认改为 CNY，支持自定义配置
 
 ### Documentation
 
