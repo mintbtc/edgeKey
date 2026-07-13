@@ -215,10 +215,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, inject } from "vue";
 import { useData } from "vike-vue/useData";
 import AppButton from "../../../components/AppButton.vue";
 import { normalizeTelefuncError } from "../../../lib/app-error";
+import { SITE_TIMEZONE_KEY } from "../../../lib/utils/time";
 import type { Data } from "./+data";
 import { onCreateTwoFactorSetup, onDisableTwoFactor, onEnableTwoFactor } from "./twoFactor.telefunc";
 
@@ -262,8 +263,10 @@ function clearSetup() {
   alert.value = null;
 }
 
+const securityTimezone = inject(SITE_TIMEZONE_KEY, "Asia/Shanghai");
+
 function formatDate(value: string) {
-  return new Date(value).toLocaleString("zh-CN", { hour12: false });
+  return new Date(value).toLocaleString("zh-CN", { timeZone: securityTimezone, hour12: false });
 }
 
 async function handleCreateSetup() {

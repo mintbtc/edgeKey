@@ -91,7 +91,9 @@
 </template>
 
 <script setup lang="ts">
+import { inject } from "vue";
 import type { MediaItem } from "../../../../modules/media/types";
+import { SITE_TIMEZONE_KEY } from "../../../../lib/utils/time";
 
 defineProps<{
   item: MediaItem;
@@ -134,8 +136,11 @@ function formatSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
+const mediaTimezone = inject(SITE_TIMEZONE_KEY, "Asia/Shanghai");
+
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleString("zh-CN", {
+    timeZone: mediaTimezone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

@@ -17,6 +17,7 @@ const defaultSiteSetting = {
   orderNotice: null,
   headCode: null,
   footerCode: null,
+  timezone: "Asia/Shanghai",
 };
 
 function normalizeSetting(record: Awaited<ReturnType<typeof getSiteSettingRecord>>) {
@@ -36,6 +37,7 @@ function normalizeSetting(record: Awaited<ReturnType<typeof getSiteSettingRecord
     orderNotice: record.orderNotice,
     headCode: record.headCode,
     footerCode: record.footerCode,
+    timezone: record.timezone ?? "Asia/Shanghai",
   };
 }
 
@@ -67,6 +69,7 @@ export async function saveSiteSetting(input: SiteSettingInput) {
     orderNotice: input.orderNotice?.trim() || null,
     headCode: input.headCode ?? null,
     footerCode: input.footerCode ?? null,
+    timezone: input.timezone?.trim() || null,
   });
 
   await logAdminOperation(

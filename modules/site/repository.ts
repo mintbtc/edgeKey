@@ -20,6 +20,7 @@ export function upsertSiteSettingRecord(
     orderNotice?: string | null;
     headCode?: string | null;
     footerCode?: string | null;
+    timezone?: string | null;
   },
 ) {
   return prisma.siteSetting.upsert({
@@ -37,6 +38,7 @@ export function upsertSiteSettingRecord(
       orderNotice: input.orderNotice ?? null,
       headCode: input.headCode ?? null,
       footerCode: input.footerCode ?? null,
+      timezone: input.timezone ?? null,
     },
     update: {
       siteName: input.siteName,
@@ -50,6 +52,7 @@ export function upsertSiteSettingRecord(
       orderNotice: input.orderNotice ?? null,
       headCode: input.headCode ?? null,
       footerCode: input.footerCode ?? null,
+      timezone: input.timezone ?? null,
     },
   });
 }

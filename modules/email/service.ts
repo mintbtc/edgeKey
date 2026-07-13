@@ -786,7 +786,7 @@ export async function sendTestEmail(input: {
     toEmail: validated.toEmail,
     values: {
       siteName: site.siteName,
-      sentAt: new Date().toLocaleString("zh-CN"),
+      sentAt: new Date().toLocaleString("zh-CN", { timeZone: site.timezone || "Asia/Shanghai" }),
       customContent: validated.customContent,
     },
     triggeredBy: `admin:${adminId || 0}`,

@@ -9,8 +9,8 @@ VALUES ('admin', '$2b$10$viMe8RgcpM30gmmF9OpOcuA/QgleSIUk5VRtqjOulfSIbgK5jQCI6',
 ON CONFLICT("username") DO NOTHING;
 
 -- 站点设置
-INSERT INTO "SiteSetting" ("id", "siteName", "siteSubtitle", "notice", "updatedAt")
-VALUES (1, 'EK发卡商城', 'Cloudflare Workers 免费部署自动发卡商城', '全球部署，一触即达。', CURRENT_TIMESTAMP)
+INSERT INTO "SiteSetting" ("id", "siteName", "siteSubtitle", "notice", "timezone", "updatedAt")
+VALUES (1, 'EK发卡商城', 'Cloudflare Workers 免费部署自动发卡商城', '全球部署，一触即达。', 'Asia/Shanghai', CURRENT_TIMESTAMP)
 ON CONFLICT("id") DO NOTHING;
 
 -- 邮件模板

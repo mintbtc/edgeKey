@@ -15,16 +15,26 @@
           <input v-model="form.siteName" class="input input-bordered w-full" />
         </label>
         <label class="flex flex-col gap-1.5">
-          <span class="label-text font-medium">网站地址</span>
-          <input v-model="form.siteUrl" class="input input-bordered w-full" placeholder="https://example.com" />
+          <span class="label-text font-medium">副标题</span>
+          <input v-model="form.siteSubtitle" class="input input-bordered w-full" />
         </label>
       </div>
 
       <div class="grid gap-4 md:grid-cols-2">
         <label class="flex flex-col gap-1.5">
-          <span class="label-text font-medium">副标题</span>
-          <input v-model="form.siteSubtitle" class="input input-bordered w-full" />
+          <span class="label-text font-medium">网站地址</span>
+          <input v-model="form.siteUrl" class="input input-bordered w-full" placeholder="https://example.com" />
         </label>
+        <label class="flex flex-col gap-1.5">
+          <span class="label-text font-medium">站点时区</span>
+          <select v-model="form.timezone" class="select select-bordered w-full">
+            <option v-for="tz in timezones" :key="tz.value" :value="tz.value">{{ tz.label }}</option>
+          </select>
+          <span class="text-xs text-base-content/50">影响后台“今日订单”等统计数据的日期分界点</span>
+        </label>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
         <label class="flex flex-col gap-1.5">
           <span class="label-text font-medium">网站Favicon (ico & png)</span>
           <div class="flex gap-2">
@@ -32,10 +42,7 @@
             <AppButton variant="outline" @click="openFilePicker('favicon')">选择图片</AppButton>
           </div>
         </label>
-      </div>
-
-      <div class="grid gap-4 md:grid-cols-2">
-        <label class="flex flex-col gap-1.5 md:col-span-2">
+        <label class="flex flex-col gap-1.5">
           <span class="label-text font-medium">网站Logo URL</span>
           <div class="flex gap-2">
             <input v-model="form.logo" class="input input-bordered w-full" placeholder="https://example.com/logo.png" />
@@ -122,7 +129,50 @@ const form = reactive({
   orderNotice: site.orderNotice ?? "",
   headCode: site.headCode ?? "",
   footerCode: site.footerCode ?? "",
+  timezone: site.timezone ?? "Asia/Shanghai",
 });
+
+const timezones = [
+  { value: "Etc/GMT+12", label: "UTC-12" },
+  { value: "Pacific/Pago_Pago", label: "太平洋/帕果帕果 (UTC-11)" },
+  { value: "Pacific/Honolulu", label: "太平洋/檀香山 (UTC-10)" },
+  { value: "Pacific/Marquesas", label: "太平洋/马克萨斯 (UTC-9:30)" },
+  { value: "America/Anchorage", label: "美洲/安克雷奇 (UTC-9)" },
+  { value: "America/Los_Angeles", label: "美洲/洛杉矶 (UTC-8)" },
+  { value: "America/Denver", label: "美洲/丹佛 (UTC-7)" },
+  { value: "America/Chicago", label: "美洲/芝加哥 (UTC-6)" },
+  { value: "America/New_York", label: "美洲/纽约 (UTC-5)" },
+  { value: "America/Caracas", label: "美洲/加拉加斯 (UTC-4:30)" },
+  { value: "America/Halifax", label: "美洲/哈利法克斯 (UTC-4)" },
+  { value: "America/St_Johns", label: "美洲/圣约翰斯 (UTC-3:30)" },
+  { value: "America/Sao_Paulo", label: "美洲/圣保罗 (UTC-3)" },
+  { value: "Atlantic/South_Georgia", label: "大西洋/南乔治亚 (UTC-2)" },
+  { value: "Atlantic/Azores", label: "大西洋/亚速尔 (UTC-1)" },
+  { value: "UTC", label: "UTC" },
+  { value: "Europe/Berlin", label: "欧洲/柏林 (UTC+1)" },
+  { value: "Europe/Athens", label: "欧洲/雅典 (UTC+2)" },
+  { value: "Europe/Moscow", label: "欧洲/莫斯科 (UTC+3)" },
+  { value: "Asia/Tehran", label: "亚洲/德黑兰 (UTC+3:30)" },
+  { value: "Asia/Dubai", label: "亚洲/迪拜 (UTC+4)" },
+  { value: "Asia/Kabul", label: "亚洲/喀布尔 (UTC+4:30)" },
+  { value: "Asia/Karachi", label: "亚洲/卡拉奇 (UTC+5)" },
+  { value: "Asia/Kolkata", label: "亚洲/加尔各答 (UTC+5:30)" },
+  { value: "Asia/Kathmandu", label: "亚洲/加德满都 (UTC+5:45)" },
+  { value: "Asia/Dhaka", label: "亚洲/达卡 (UTC+6)" },
+  { value: "Asia/Yangon", label: "亚洲/仰光 (UTC+6:30)" },
+  { value: "Asia/Bangkok", label: "亚洲/曼谷 (UTC+7)" },
+  { value: "Asia/Shanghai", label: "亚洲/上海 (UTC+8)" },
+  { value: "Australia/Eucla", label: "澳洲/尤克拉 (UTC+8:45)" },
+  { value: "Asia/Tokyo", label: "亚洲/东京 (UTC+9)" },
+  { value: "Australia/Adelaide", label: "澳洲/阿德莱德 (UTC+9:30)" },
+  { value: "Australia/Sydney", label: "澳洲/悉尼 (UTC+10)" },
+  { value: "Australia/Lord_Howe", label: "澳洲/豪勋爵 (UTC+10:30)" },
+  { value: "Pacific/Noumea", label: "太平洋/努美阿 (UTC+11)" },
+  { value: "Pacific/Auckland", label: "太平洋/奥克兰 (UTC+12)" },
+  { value: "Pacific/Chatham", label: "太平洋/查塔姆 (UTC+12:45)" },
+  { value: "Pacific/Tongatapu", label: "太平洋/汤加塔布 (UTC+13)" },
+  { value: "Pacific/Kiritimati", label: "太平洋/圣诞岛 (UTC+14)" },
+];
 
 const saving = ref(false);
 const saved = ref(false);
@@ -149,6 +199,7 @@ async function handleSave() {
     form.orderNotice = result.orderNotice ?? "";
     form.headCode = result.headCode ?? "";
     form.footerCode = result.footerCode ?? "";
+    form.timezone = result.timezone ?? "Asia/Shanghai";
     saved.value = true;
   } catch (error) {
     errorMessage.value = normalizeTelefuncError(error, "保存失败");

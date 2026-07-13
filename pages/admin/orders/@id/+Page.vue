@@ -137,8 +137,13 @@ function openRawPayload(raw: string) {
   payloadDialogRef.value?.showModal();
 }
 
+import { inject } from "vue";
+import { SITE_TIMEZONE_KEY, formatDateInTimezone } from "../../../../lib/utils/time";
+
+const timezone = inject(SITE_TIMEZONE_KEY, "Asia/Shanghai");
+
 function formatDate(value: string) {
-  return new Date(value).toLocaleString();
+  return formatDateInTimezone(value, timezone);
 }
 
 async function handleRedeliver() {

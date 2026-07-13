@@ -160,6 +160,7 @@ model SiteSetting {
   orderNotice    String?
   headCode       String?
   footerCode     String?
+  timezone       String?         @default("Asia/Shanghai")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

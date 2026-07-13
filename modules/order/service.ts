@@ -11,6 +11,8 @@ import { closeOrderRecord, createOrderRecord, findOrderById, findOrderWithProduc
 import { generateOrderNo, generateQueryToken } from "./number";
 import { logger } from "../../lib/logger";
 import { validateDiscountCode, calculateDiscount, applyDiscountCode } from "../discount/service";
+import { getSiteSetting } from "../site/service";
+import { getStartOfDay as getStartOfDayUtil } from "../../lib/utils/time";
 
 function getOrderContext() {
   return getContext<{ prisma: PrismaClient }>();
@@ -399,8 +401,8 @@ export async function closeOrder(orderId: number) {
 
 export async function getDashboardMetrics(prisma?: PrismaClient) {
   const client = prisma ?? getOrderContext().prisma;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const siteSetting = await getSiteSetting(client);
+  const today = getStartOfDayUtil(new Date(), siteSetting.timezone!);
 
   const [todayOrders, paidTodayOrders, productCount, availableCards] = await Promise.all([
     client.order.count({

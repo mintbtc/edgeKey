@@ -10,4 +10,5 @@ export interface SiteSettingInput {
   orderNotice?: string | null;
   headCode?: string | null;
   footerCode?: string | null;
+  timezone?: string | null;
 }
