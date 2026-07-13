@@ -33,9 +33,24 @@ export const telefuncHandler: UniversalHandler = enhance(
     });
 
     const { body, statusCode, contentType } = httpResponse;
-    if (statusCode === 500 && "err" in httpResponse) {
-      logger.error(httpResponse.err instanceof Error ? httpResponse.err : new Error(String(httpResponse.err)), {
+    if (statusCode >= 400 && "err" in httpResponse) {
+      const error = httpResponse.err;
+      logger.error(error instanceof Error ? error : new Error(String(error)), {
         event: "telefunc.unhandled",
+      });
+      
+      // 手动构造错误响应，确保客户端能收到具体错误信息
+      const errorPayload = {
+        message: error instanceof Error ? error.message : String(error),
+        code: (error as any)?.code,
+        statusCode: (error as any)?.statusCode || statusCode,
+      };
+      
+      return new Response(JSON.stringify(errorPayload), {
+        status: statusCode,
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+        },
       });
     }
     return new Response(body, {

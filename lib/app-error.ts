@@ -155,18 +155,6 @@ export function toTelefuncErrorPayload(error: unknown) {
   return toErrorResponsePayload(error);
 }
 
-export function throwTelefuncError(error: unknown): never {
-  const appError = toAppError(error);
-  const payload = toErrorResponsePayload(appError);
-  
-  // Telefunc 需要通过 Abort 抛出错误才能正确序列化给客户端
-  const AbortError = Error as any;
-  const abortError = new AbortError(payload.message);
-  abortError.isAbort = true;
-  abortError.abortValue = payload;
-  throw abortError;
-}
-
 function getTelefuncAbortValue(error: unknown): TelefuncAbortValue | null {
   if (!(error instanceof Error)) {
     return null;
