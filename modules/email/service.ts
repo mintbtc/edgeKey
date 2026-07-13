@@ -175,6 +175,10 @@ function buildDeliveryItems(items: string[]) {
     return "暂无发货内容";
   }
 
+  if (items.length === 1) {
+    return items[0];
+  }
+
   return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
 }
 
