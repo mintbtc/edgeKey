@@ -11,7 +11,7 @@
           <h1 class="text-3xl font-bold">{{ product.name }}</h1>
           <p class="mt-2 text-base-content/70">{{ product.subtitle }}</p>
         </div>
-        <div class="prose max-w-none text-base-content/80" v-html="descriptionHtml"></div>
+        <div class="max-w-none text-base-content/80" v-html="descriptionHtml"></div>
         <div class="rounded-box bg-base-200 p-4 text-sm text-base-content/80">
           {{ product.purchaseNote || '下单后将生成待支付订单，支付成功后会给您的联系邮箱发送通知，请注意查看。' }}
         </div>
@@ -337,12 +337,4 @@ function escapeHtml(value: string) {
 }
 </script>
 
-<style scoped>
-:deep(.prose img) {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  margin: 1rem auto;
-  border-radius: 0.85rem;
-}
-</style>
+
