@@ -14,6 +14,7 @@ export async function onSaveSiteSettings(input: {
   orderNotice?: string;
   headCode?: string;
   footerCode?: string;
+  timezone?: string;
 }) {
   try {
     assertAdminAccess();

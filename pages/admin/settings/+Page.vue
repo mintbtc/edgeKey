@@ -6,7 +6,6 @@
           <h1 class="text-2xl font-bold">站点设置</h1>
           <p class="text-sm text-base-content/70">维护前台展示的站点名称、公告、客服和下单提示。</p>
         </div>
-        <span v-if="saved" class="badge badge-success">已保存</span>
       </div>
 
       <div class="grid gap-4 md:grid-cols-2">
@@ -92,6 +91,7 @@
 
       <div class="flex items-center gap-3">
         <AppButton variant="primary" :loading="saving" @click="handleSave">保存设置</AppButton>
+        <span v-if="saved" class="text-sm text-success">✓ 已保存</span>
         <span v-if="errorMessage" class="text-sm text-error">{{ errorMessage }}</span>
       </div>
     </div>
