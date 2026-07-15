@@ -15,6 +15,7 @@ export async function onSaveProduct(input: {
   deliveryType?: "CARD_AUTO" | "FIXED_CARD" | "MANUAL" | "EXPRESS";
   fixedDeliveryContent?: string;
   manualDeliveryHint?: string;
+  physicalStock?: number | null;
   minBuy: number;
   maxBuy: number;
   sort?: number;

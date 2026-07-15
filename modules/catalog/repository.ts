@@ -103,6 +103,7 @@ export function upsertProductRecord(
     fixedDeliveryContent?: string | null;
     manualDeliveryHint?: string | null;
     stockMode: "FINITE" | "UNLIMITED";
+    physicalStock?: number | null;
     minBuy: number;
     maxBuy: number;
     sort: number;
@@ -122,6 +123,7 @@ export function upsertProductRecord(
     fixedDeliveryContent: input.fixedDeliveryContent ?? null,
     manualDeliveryHint: input.manualDeliveryHint ?? null,
     stockMode: input.stockMode,
+    physicalStock: input.physicalStock ?? null,
     minBuy: input.minBuy,
     maxBuy: input.maxBuy,
     sort: input.sort,

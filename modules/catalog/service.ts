@@ -184,6 +184,7 @@ export async function saveProduct(input: {
   deliveryType?: "CARD_AUTO" | "FIXED_CARD" | "MANUAL" | "EXPRESS";
   fixedDeliveryContent?: string;
   manualDeliveryHint?: string;
+  physicalStock?: number | null;
   minBuy: number;
   maxBuy: number;
   sort?: number;
@@ -202,6 +203,10 @@ export async function saveProduct(input: {
   const minBuy = Number.isFinite(input.minBuy) ? Math.max(1, Math.floor(input.minBuy)) : 1;
   const maxBuy = Number.isFinite(input.maxBuy) ? Math.max(minBuy, Math.floor(input.maxBuy)) : minBuy;
   const stockMode = deliveryType === "CARD_AUTO" ? "FINITE" : "UNLIMITED";
+  // 实物库存：只对 MANUAL 和 EXPRESS 类型有效
+  const physicalStock = (deliveryType === "MANUAL" || deliveryType === "EXPRESS")
+    ? (input.physicalStock != null && Number.isFinite(input.physicalStock) ? Math.max(0, Math.floor(input.physicalStock)) : null)
+    : null;
 
   if (input.id) {
     const existingProduct = await prisma.product.findUnique({
@@ -263,6 +268,7 @@ export async function saveProduct(input: {
     fixedDeliveryContent: deliveryType === "FIXED_CARD" ? fixedDeliveryContent : null,
     manualDeliveryHint: (deliveryType === "MANUAL" || deliveryType === "EXPRESS") ? input.manualDeliveryHint?.trim() || null : null,
     stockMode,
+    physicalStock,
     minBuy,
     maxBuy,
     sort: Number.isFinite(input.sort) ? Math.floor(input.sort ?? 0) : 0,
@@ -297,6 +303,7 @@ export async function saveProduct(input: {
     fixedDeliveryContent: record.fixedDeliveryContent,
     manualDeliveryHint: record.manualDeliveryHint,
     stockMode: record.stockMode,
+    physicalStock: record.physicalStock,
     minBuy: record.minBuy,
     maxBuy: record.maxBuy,
     sort: record.sort,

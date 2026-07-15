@@ -133,11 +133,15 @@
             {{ product.availableStock === 0 ? '商品都卖光了，看看其他商品' : `库存紧张，仅剩 ${product.availableStock} 件` }}
           </p>
           <p v-else-if="product.deliveryType === 'FIXED_CARD'" class="text-sm text-success">自动发货，库存充足。</p>
-          <p v-else-if="product.deliveryType === 'MANUAL'" class="text-sm text-success">{{ product.manualDeliveryHint || '支付后，客服将尽快为您处理订单，请耐心等待。' }}</p>
-          <p v-else-if="product.deliveryType === 'EXPRESS'" class="text-sm text-success">{{ product.manualDeliveryHint || '请填写收货信息，支付后管理员将安排快递发货。' }}</p>
+          <p v-else-if="product.deliveryType === 'MANUAL'" class="text-sm" :class="product.availableStock === 0 ? 'text-error' : product.availableStock > 0 && product.availableStock < 10 ? 'text-warning' : 'text-success'">
+            {{ product.availableStock === 0 ? '商品都卖光了，看看其他商品' : product.availableStock > 0 && product.availableStock < 10 ? `库存紧张，仅剩 ${product.availableStock} 件` : (product.manualDeliveryHint || '支付后，客服将尽快为您处理订单，请耐心等待。') }}
+          </p>
+          <p v-else-if="product.deliveryType === 'EXPRESS'" class="text-sm" :class="product.availableStock === 0 ? 'text-error' : product.availableStock > 0 && product.availableStock < 10 ? 'text-warning' : 'text-success'">
+            {{ product.availableStock === 0 ? '商品都卖光了，看看其他商品' : product.availableStock > 0 && product.availableStock < 10 ? `库存紧张，仅剩 ${product.availableStock} 件` : (product.manualDeliveryHint || '请填写收货信息，支付后管理员将安排快递发货。') }}
+          </p>
 
-          <AppButton variant="primary" :loading="submitting" :disabled="(!isFreeOrder && !paymentMethods.length) || (product.deliveryType === 'CARD_AUTO' && product.availableStock === 0)" @click="handleCreateOrder">
-            {{ product.deliveryType === 'CARD_AUTO' && product.availableStock === 0 ? '已售罄' : isFreeOrder ? '免费获取' : '提交订单' }}
+          <AppButton variant="primary" :loading="submitting" :disabled="(!isFreeOrder && !paymentMethods.length) || ((product.deliveryType === 'CARD_AUTO' || product.deliveryType === 'MANUAL' || product.deliveryType === 'EXPRESS') && product.availableStock === 0)" @click="handleCreateOrder">
+            {{ (product.deliveryType === 'CARD_AUTO' || product.deliveryType === 'MANUAL' || product.deliveryType === 'EXPRESS') && product.availableStock === 0 ? '已售罄' : isFreeOrder ? '免费获取' : '提交订单' }}
           </AppButton>
           <p v-if="!isFreeOrder && !paymentMethods.length" class="text-sm text-warning">当前没有可用支付方式，请联系管理员启用支付配置。</p>
           <p v-if="errorMessage" class="text-sm text-error">{{ errorMessage }}</p>
