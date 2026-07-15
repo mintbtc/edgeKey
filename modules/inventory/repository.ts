@@ -1,4 +1,5 @@
 import type { PrismaClient, Prisma, CardStatus } from "../../generated/prisma/client";
+import { getEndOfDay, getStartOfDay } from "../../lib/utils/time";
 
 export function listCardRecords(prisma: PrismaClient) {
   return prisma.card.findMany({
@@ -74,6 +75,7 @@ export function listCardRecordsPaged(
     endDate?: string;
     page: number;
     pageSize: number;
+    timezone?: string;
   },
 ) {
   const where: Prisma.CardWhereInput = {};
@@ -82,11 +84,9 @@ export function listCardRecordsPaged(
   if (params.status) where.status = params.status as CardStatus;
   if (params.startDate || params.endDate) {
     where.createdAt = {};
-    if (params.startDate) where.createdAt.gte = new Date(params.startDate);
+    if (params.startDate) where.createdAt.gte = getStartOfDay(params.startDate, params.timezone || "Asia/Shanghai");
     if (params.endDate) {
-      const end = new Date(params.endDate);
-      end.setHours(23, 59, 59, 999);
-      where.createdAt.lte = end;
+      where.createdAt.lte = getEndOfDay(params.endDate, params.timezone || "Asia/Shanghai");
     }
   }
   const skip = (params.page - 1) * params.pageSize;

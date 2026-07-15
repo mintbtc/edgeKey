@@ -1,5 +1,6 @@
 import { assertAdminAccess } from "../../../modules/auth/service";
 import { savePaymentConfig } from "../../../modules/payment/service";
+import { throwAbortError } from "../../../lib/throw-abort-error";
 import type { PaymentProvider } from "../../../modules/payment/types";
 
 export async function onSavePaymentConfig(input: {
@@ -19,7 +20,14 @@ export async function onSavePaymentConfig(input: {
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
   stripeCurrency?: string;
+  hashpayMerchantId?: string;
+  hashpayPrivateKey?: string;
+  hashpayCurrency?: string;
 }) {
-  assertAdminAccess();
-  return savePaymentConfig(input);
+  try {
+    assertAdminAccess();
+    return await savePaymentConfig(input);
+  } catch (error) {
+    throwAbortError(error);
+  }
 }

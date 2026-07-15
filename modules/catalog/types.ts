@@ -1,4 +1,4 @@
-export type ProductDeliveryTypeValue = "CARD_AUTO" | "FIXED_CARD" | "MANUAL";
+export type ProductDeliveryTypeValue = "CARD_AUTO" | "FIXED_CARD" | "MANUAL" | "EXPRESS";
 
 export interface ProductSummary {
   id: number;

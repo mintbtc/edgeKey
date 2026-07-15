@@ -5,6 +5,7 @@ import { registerEpayRoutes } from "./payment-epay";
 import { registerAlipayRoutes } from "./payment-alipay";
 import { registerAlipayFaceRoutes } from "./payment-alipay-face";
 import { registerStripeRoutes } from "./payment-stripe";
+import { registerHashpayRoutes } from "./payment-hashpay";
 import { registerRobotsRoutes } from "./robots";
 import { registerSitemapRoutes } from "./sitemap";
 import { registerMediaRoutes } from "./media";
@@ -19,6 +20,7 @@ export function registerApiRoutes(app: Hono) {
   registerAlipayRoutes(app);
   registerAlipayFaceRoutes(app);
   registerStripeRoutes(app);
+  registerHashpayRoutes(app);
   registerRobotsRoutes(app);
   registerSitemapRoutes(app);
   registerMediaRoutes(app);

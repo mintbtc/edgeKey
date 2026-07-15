@@ -1,4 +1,4 @@
-export type PaymentProvider = "BEPUSDT" | "EPAY" | "ALIPAY" | "ALIPAY_FACE" | "STRIPE" | "FREE_PAY";
+export type PaymentProvider = "BEPUSDT" | "EPAY" | "ALIPAY" | "ALIPAY_FACE" | "STRIPE" | "FREE_PAY" | "HASHPAY";
 
 export interface PaymentMethodItem {
   provider: PaymentProvider;
@@ -24,4 +24,7 @@ export interface PaymentConfigValue {
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
   stripeCurrency?: string;
+  hashpayMerchantId?: string;
+  hashpayPrivateKey?: string;
+  hashpayCurrency?: string;
 }

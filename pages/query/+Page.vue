@@ -74,13 +74,18 @@
 <script setup lang="ts">
 import { normalizeTelefuncError } from "../../lib/app-error";
 import { ref, onMounted } from "vue";
+import { useData } from "vike-vue/useData";
 import AppButton from "../../components/AppButton.vue";
 import { onQueryOrder } from "./queryOrder.telefunc";
 import { onSyncLocalOrders } from "./syncLocalOrders.telefunc";
 import { getLocalOrders, saveLocalOrders, type LocalOrder } from "../../lib/local-orders";
 import { formatCents } from "../../lib/utils/money";
+import { formatDateInTimezone } from "../../lib/utils/time";
 import StatusTag from "../../components/StatusTag.vue";
 import { getOrderStatusLabel, getOrderStatusType } from "../../lib/utils/order-status";
+import type { Data } from "./+data";
+
+const { timezone } = useData<Data>();
 
 const activeTab = ref<"local" | "query">("query");
 const orderNo = ref("");
@@ -100,7 +105,7 @@ function wait(ms: number) {
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleString("zh-CN", { dateStyle: "short", timeStyle: "short" });
+  return formatDateInTimezone(iso, timezone);
 }
 
 function isTerminalLocalOrder(order: LocalOrder) {

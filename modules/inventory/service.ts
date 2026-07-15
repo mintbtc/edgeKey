@@ -2,6 +2,7 @@ import { getContext } from "telefunc";
 import type { PrismaClient } from "../../generated/prisma/client";
 import { badRequestError } from "../../lib/app-error";
 import { getAdminContext, logAdminOperation } from "../auth/service";
+import { getSiteSetting } from "../site/service";
 import { parseCardLines } from "./importer";
 import { countCardStats, createCardRecord, createManyCards, deleteCardById, deleteUnusedCardsByProduct, listCardRecords, listCardRecordsPaged, findExistingCardContents } from "./repository";
 
@@ -233,7 +234,8 @@ export async function getAdminCardsPaged(params: {
   pageSize: number;
 }) {
   const { prisma } = getAdminContext();
-  const [cards, total] = await listCardRecordsPaged(prisma, params);
+  const site = await getSiteSetting(prisma);
+  const [cards, total] = await listCardRecordsPaged(prisma, { ...params, timezone: site.timezone || "Asia/Shanghai" });
   return {
     total,
     items: cards.map((item) => ({

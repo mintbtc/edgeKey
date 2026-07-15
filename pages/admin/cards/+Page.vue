@@ -152,8 +152,13 @@ const columns = [
   { key: "actions", label: "操作" },
 ];
 
+import { inject } from "vue";
+import { SITE_TIMEZONE_KEY, formatDateInTimezone } from "../../../lib/utils/time";
+
+const timezone = inject(SITE_TIMEZONE_KEY, "Asia/Shanghai");
+
 function formatDate(value: string) {
-  return new Date(value).toLocaleString();
+  return formatDateInTimezone(value, timezone);
 }
 
 function getStatusLabel(status: string) {

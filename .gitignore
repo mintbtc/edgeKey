@@ -151,3 +151,6 @@ cdk.out
 
 # prisma部署d1的客户端产物
 /generated/prisma/
+
+# 本地SQLite数据库
+prisma/db.sqlite

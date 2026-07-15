@@ -26,7 +26,7 @@ export function validateProductInput(input: {
   }
 
   const deliveryType = input.deliveryType || "CARD_AUTO";
-  if (!["CARD_AUTO", "FIXED_CARD", "MANUAL"].includes(deliveryType)) {
+  if (!["CARD_AUTO", "FIXED_CARD", "MANUAL", "EXPRESS"].includes(deliveryType)) {
     throw badRequestError("发货方式不正确", "PRODUCT_DELIVERY_TYPE_INVALID");
   }
 
@@ -37,7 +37,7 @@ export function validateProductInput(input: {
 
   return {
     name,
-    deliveryType: deliveryType as "CARD_AUTO" | "FIXED_CARD" | "MANUAL",
+    deliveryType: deliveryType as "CARD_AUTO" | "FIXED_CARD" | "MANUAL" | "EXPRESS",
     fixedDeliveryContent,
   };
 }

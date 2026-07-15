@@ -1,4 +1,5 @@
 import { createOrder } from "../../../modules/order/service";
+import { throwAbortError } from "../../../lib/throw-abort-error";
 import type { PaymentProvider } from "../../../modules/payment/types";
 
 export async function onCreateOrder(input: {
@@ -9,7 +10,12 @@ export async function onCreateOrder(input: {
   contactType: "EMAIL";
   contactValue: string;
   buyerNote?: string;
+  receiverInfo?: string;
   discountCode?: string;
 }) {
-  return createOrder(input);
+  try {
+    return await createOrder(input);
+  } catch (error) {
+    throwAbortError(error);
+  }
 }

@@ -1,5 +1,6 @@
 import { assertAdminAccess } from "../../../modules/auth/service";
 import { saveProduct } from "../../../modules/catalog/service";
+import { throwAbortError } from "../../../lib/throw-abort-error";
 
 export async function onSaveProduct(input: {
   id?: number;
@@ -11,7 +12,7 @@ export async function onSaveProduct(input: {
   description?: string;
   price: number;
   status: "DRAFT" | "ACTIVE" | "INACTIVE";
-  deliveryType?: "CARD_AUTO" | "FIXED_CARD" | "MANUAL";
+  deliveryType?: "CARD_AUTO" | "FIXED_CARD" | "MANUAL" | "EXPRESS";
   fixedDeliveryContent?: string;
   manualDeliveryHint?: string;
   minBuy: number;
@@ -19,6 +20,10 @@ export async function onSaveProduct(input: {
   sort?: number;
   purchaseNote?: string;
 }) {
-  assertAdminAccess();
-  return saveProduct(input);
+  try {
+    assertAdminAccess();
+    return await saveProduct(input);
+  } catch (error) {
+    throwAbortError(error);
+  }
 }

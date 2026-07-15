@@ -8,4 +8,7 @@ export interface SiteSettingInput {
   supportContact?: string | null;
   footerText?: string | null;
   orderNotice?: string | null;
+  headCode?: string | null;
+  footerCode?: string | null;
+  timezone?: string | null;
 }

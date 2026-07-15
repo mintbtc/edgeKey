@@ -55,6 +55,7 @@ export function createOrderRecord(
     contactType: "EMAIL" | "QQ" | "TELEGRAM" | "OTHER";
     contactValue?: string | null;
     buyerNote?: string | null;
+    receiverInfo?: string | null;
     paymentProvider: PaymentProvider;
     paymentChannel?: string | null;
     discountCodeId?: number | null;
@@ -75,6 +76,7 @@ export function createOrderRecord(
       contactType: input.contactType,
       contactValue: input.contactValue ?? null,
       buyerNote: input.buyerNote ?? null,
+      receiverInfo: input.receiverInfo ?? null,
       paymentProvider: input.paymentProvider,
       paymentChannel: input.paymentChannel ?? null,
       discountCodeId: input.discountCodeId ?? null,

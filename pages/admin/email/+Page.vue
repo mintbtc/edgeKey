@@ -473,7 +473,8 @@ import StatusTag from "../../../components/StatusTag.vue";
 import ConfirmDialog from "../../../components/ConfirmDialog.vue";
 import DataTable from "../../../components/DataTable.vue";
 import { normalizeTelefuncError } from "../../../lib/app-error";
-import { reactive, ref, computed, watch, useTemplateRef } from "vue";
+import { reactive, ref, computed, watch, useTemplateRef, inject } from "vue";
+import { SITE_TIMEZONE_KEY } from "../../../lib/utils/time";
 import { useData } from "vike-vue/useData";
 import { onSaveEmailConfig, onDeleteEmailConfig, onSaveEmailPushSettings, onActivateEmailProvider, onClearEmailLogs } from "./saveEmailConfig.telefunc";
 import { onSaveEmailTemplate, onResetEmailTemplate } from "./saveEmailTemplate.telefunc";
@@ -744,8 +745,10 @@ async function handleClearLogs() {
 }
 
 // ===================== Helpers =====================
+const emailTimezone = inject(SITE_TIMEZONE_KEY, "Asia/Shanghai");
+
 function formatDate(value: string) {
-  return new Date(value).toLocaleString("zh-CN");
+  return new Date(value).toLocaleString("zh-CN", { timeZone: emailTimezone });
 }
 
 function getSceneLabel(scene: string) {

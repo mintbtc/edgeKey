@@ -181,7 +181,7 @@ export async function saveProduct(input: {
   description?: string;
   price: number;
   status: "DRAFT" | "ACTIVE" | "INACTIVE";
-  deliveryType?: "CARD_AUTO" | "FIXED_CARD" | "MANUAL";
+  deliveryType?: "CARD_AUTO" | "FIXED_CARD" | "MANUAL" | "EXPRESS";
   fixedDeliveryContent?: string;
   manualDeliveryHint?: string;
   minBuy: number;
@@ -261,7 +261,7 @@ export async function saveProduct(input: {
     status: input.status,
     deliveryType,
     fixedDeliveryContent: deliveryType === "FIXED_CARD" ? fixedDeliveryContent : null,
-    manualDeliveryHint: deliveryType === "MANUAL" ? input.manualDeliveryHint?.trim() || null : null,
+    manualDeliveryHint: (deliveryType === "MANUAL" || deliveryType === "EXPRESS") ? input.manualDeliveryHint?.trim() || null : null,
     stockMode,
     minBuy,
     maxBuy,

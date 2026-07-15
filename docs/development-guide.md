@@ -75,6 +75,32 @@ bunx prisma migrate diff \
   --script > prisma/migrations/000X_描述.sql
 ```
 
+> [!WARNING]
+> **必须手动核查生成的 SQL**，不要直接使用 `prisma migrate diff` 的输出。常见问题：
+>
+> **1. 枚举变更加新列 —— 实际不需要任何 DDL**
+>
+> Prisma 的 `enum` 在 SQLite 中就是普通 `TEXT` 列，数据库层面没有约束。因此：
+> - 在 `schema.prisma` 的 enum 中新增值（如 `ProductDeliveryType` 加 `EXPRESS`），**不需要任何 SQL 迁移**，因为 SQLite 不关心列里存的文本内容。
+> - 只有当 enum 对应的列首次创建时，才需要 `CREATE TABLE` / `ALTER TABLE ADD COLUMN`。
+>
+> **2. 加列操作不要用全表重建**
+>
+> `prisma migrate diff` 对 SQLite 经常生成 `CREATE _new_Table → INSERT → DROP TABLE → RENAME` 的全量重建模式。对于只是新增可空列的场景，应该替换为简单的：
+> ```sql
+> ALTER TABLE "TableName" ADD COLUMN "columnName" TEXT;
+> ```
+>
+> **3. 正确的决策流程**
+>
+> | schema 变更类型 | 迁移 SQL |
+> | --- |
+> | enum 新增值 | 无 SQL（Prisma 层面约束，SQLite 无需 DDL） |
+> | 新增可空列 | `ALTER TABLE ... ADD COLUMN ...` |
+> | 新增非空列（有默认值） | `ALTER TABLE ... ADD COLUMN ... DEFAULT ...` |
+> | 新增表 | `CREATE TABLE ...` |
+> | 删除列 / 改列类型 | SQLite 不支持，需全表重建（此时才用 CREATE _new → INSERT → DROP → RENAME 模式） |
+
 #### 步骤2: 同步到本地开发环境
 
 ```bash
@@ -306,7 +332,7 @@ try {
 1. **不要**假设 `bun dev` 使用的是 `prisma/db.sqlite`；当前它实际使用的是本地 D1 模拟器
 2. **不要**使用 `prisma migrate dev`，这会偏离当前 D1 迁移工作流
 3. **不要**反复覆盖 `prisma/migrations/0001_init.sql`；初始化迁移和后续增量迁移应分开维护
-4. **不要**信任 Prisma 生成的迁移 SQL，必须手动核查脚本，重点识别并拦截非预期的 **DROP TABLE** 或**全量重建**逻辑
+4. **不要**信任 Prisma 生成的迁移 SQL，必须手动核查。重点规则见上方「步骤1」中的决策流程表：enum 变更无需 DDL、新增列用 `ALTER TABLE`、只有删列/改类型才需要全表重建
 5. **不要**使用`node:fs`、`node:path`等Node.js原生模块
 
 ---

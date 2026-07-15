@@ -1,6 +1,5 @@
 import { enhance, type UniversalHandler } from "@universal-middleware/core";
 import { config, provideTelefuncContext, telefunc } from "telefunc";
-import { toTelefuncErrorPayload } from "../lib/app-error";
 import { logger } from "../lib/logger";
 
 function withUtf8Charset(contentType: string) {
@@ -33,22 +32,12 @@ export const telefuncHandler: UniversalHandler = enhance(
       } as any,
     });
 
-    if (httpResponse.statusCode === 500 && "err" in httpResponse) {
-      const payload = toTelefuncErrorPayload(httpResponse.err);
+    const { body, statusCode, contentType } = httpResponse;
+    if (statusCode === 500 && "err" in httpResponse) {
       logger.error(httpResponse.err instanceof Error ? httpResponse.err : new Error(String(httpResponse.err)), {
         event: "telefunc.unhandled",
       });
-
-      const body = JSON.stringify({ ret: payload, abort: true });
-      return new Response(body, {
-        status: 403,
-        headers: {
-          "content-type": withUtf8Charset("text/plain"),
-        },
-      });
     }
-
-    const { body, statusCode, contentType } = httpResponse;
     return new Response(body, {
       status: statusCode,
       headers: {

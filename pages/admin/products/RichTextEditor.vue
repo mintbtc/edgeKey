@@ -370,7 +370,18 @@ function onHtmlInput() {
 }
 
 function toggleHeading(level: 2 | 3) {
-  editor.value?.chain().focus().toggleHeading({ level }).run();
+  const e = editor.value;
+  if (!e) return;
+  const { state } = e;
+  const { $from } = state.selection;
+  const isInHeading = $from.parent.type.name === "heading";
+  const isSameLevel = isInHeading && $from.parent.attrs.level === level;
+
+  if (isSameLevel) {
+    e.chain().focus().clearNodes().run();
+  } else {
+    e.chain().focus().setNodeSelection($from.before()).setHeading({ level }).run();
+  }
 }
 
 function isTextColorSelected(color: string) {

@@ -9,8 +9,8 @@ VALUES ('admin', '$2b$10$viMe8RgcpM30gmmF9OpOcuA/QgleSIUk5VRtqjOulfSIbgK5jQCI6',
 ON CONFLICT("username") DO NOTHING;
 
 -- 站点设置
-INSERT INTO "SiteSetting" ("id", "siteName", "siteSubtitle", "notice", "updatedAt")
-VALUES (1, 'EK发卡商城', 'Cloudflare Workers 免费部署自动发卡商城', '全球部署，一触即达。', CURRENT_TIMESTAMP)
+INSERT INTO "SiteSetting" ("id", "siteName", "siteSubtitle", "notice", "timezone", "updatedAt")
+VALUES (1, 'EK发卡商城', 'Cloudflare Workers 免费部署自动发卡商城', '全球部署，一触即达。', 'Asia/Shanghai', CURRENT_TIMESTAMP)
 ON CONFLICT("id") DO NOTHING;
 
 -- 邮件模板
@@ -27,6 +27,7 @@ VALUES
   ('ORDER_PAID', '支付成功通知', '[{{siteName}}] 订单 {{orderNo}} 支付成功', '您的订单已支付成功。
 
 订单号：{{orderNo}}
+顾客邮箱：{{contactEmail}}
 商品：{{productName}}
 金额：{{amount}}
 备注：{{buyerNote}}
@@ -36,6 +37,7 @@ VALUES
   ('DELIVERY_SUCCESS', '发货成功通知', '[{{siteName}}] 订单 {{orderNo}} 已发货', '您的订单已完成发货。
 
 订单号：{{orderNo}}
+顾客邮箱：{{contactEmail}}
 商品：{{productName}}
 数量：{{quantity}}
 备注：{{buyerNote}}
@@ -47,6 +49,7 @@ VALUES
   ('DELIVERY_FAILED', '发货失败通知', '[{{siteName}}] 订单 {{orderNo}} 发货失败', '订单发货失败，请尽快处理。
 
 订单号：{{orderNo}}
+顾客邮箱：{{contactEmail}}
 商品：{{productName}}
 备注：{{buyerNote}}
 失败原因：{{errorMessage}}

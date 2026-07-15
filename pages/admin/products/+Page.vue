@@ -98,6 +98,8 @@ function getDeliveryTypeLabel(deliveryType: string) {
       return "固定内容自动发货";
     case "MANUAL":
       return "手动发货";
+    case "EXPRESS":
+      return "快递发货";
     default:
       return deliveryType;
   }
@@ -110,6 +112,8 @@ function getDeliveryTypeTagType(deliveryType: string): "primary" | "success" | "
     case "FIXED_CARD":
       return "success";
     case "MANUAL":
+      return "warning";
+    case "EXPRESS":
       return "warning";
     default:
       return "default";

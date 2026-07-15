@@ -66,11 +66,13 @@
         </details>
       </div>
     </footer>
+    
+    <!-- footerCode 通过 onMounted 动态注入 -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import AppButton from "../components/AppButton.vue";
 import { usePageContext } from "vike-vue/usePageContext";
 
@@ -89,8 +91,24 @@ const supportContactItems = computed(() => {
   });
 });
 const footerText = computed(() => pageContext.site?.footerText || "");
+const headCode = computed(() => pageContext.site?.headCode || "");
+const footerCode = computed(() => pageContext.site?.footerCode || "");
 
 const isAdminRoute = computed(() => pageContext.urlPathname?.startsWith("/admin"));
+
+function injectCode(html: string, target: Element) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("script").forEach((old) => {
+    const s = document.createElement("script");
+    s.textContent = old.textContent;
+    target.appendChild(s);
+  });
+}
+
+onMounted(() => {
+  if (headCode.value) injectCode(headCode.value, document.head);
+  if (footerCode.value) injectCode(footerCode.value, document.body);
+});
 </script>
 
 <style>

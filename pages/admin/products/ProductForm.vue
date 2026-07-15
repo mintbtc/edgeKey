@@ -46,7 +46,7 @@
           <div class="text-sm font-medium">发货方式</div>
           <p class="text-xs text-base-content/60">发货方式决定库存来源和支付后的发货动作。</p>
         </div>
-        <div class="grid gap-3 md:grid-cols-3">
+        <div class="grid gap-3 md:grid-cols-4">
           <label class="rounded-box border border-base-300 p-3" :class="form.deliveryType === 'CARD_AUTO' ? 'border-primary bg-primary/5' : ''">
             <div class="flex items-center justify-between gap-2">
               <span class="font-medium">自动发货卡密</span>
@@ -68,6 +68,13 @@
             </div>
             <p class="mt-1 text-xs text-base-content/60">支付后等待管理员在订单详情填写发货内容。</p>
           </label>
+          <label class="rounded-box border border-base-300 p-3" :class="form.deliveryType === 'EXPRESS' ? 'border-primary bg-primary/5' : ''">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">快递发货</span>
+              <input v-model="form.deliveryType" type="radio" class="radio radio-primary radio-sm" value="EXPRESS" />
+            </div>
+            <p class="mt-1 text-xs text-base-content/60">买家下单时填写收货信息，支付后管理员安排快递发货。</p>
+          </label>
         </div>
         <label v-if="form.deliveryType === 'FIXED_CARD'" class="flex flex-col gap-1.5">
           <span class="label-text font-medium">固定发货内容</span>
@@ -76,6 +83,10 @@
         <label v-if="form.deliveryType === 'MANUAL'" class="flex flex-col gap-1.5">
           <span class="label-text font-medium">手动发货说明（可选）</span>
           <textarea v-model="form.manualDeliveryHint" class="textarea textarea-bordered w-full" rows="3" placeholder="例如：请留下账号信息，管理员将在 24 小时内处理"></textarea>
+        </label>
+        <label v-if="form.deliveryType === 'EXPRESS'" class="flex flex-col gap-1.5">
+          <span class="label-text font-medium">快递发货说明（可选）</span>
+          <textarea v-model="form.manualDeliveryHint" class="textarea textarea-bordered w-full" rows="3" placeholder="例如：请填写收货地址，管理员将在 48 小时内安排发货"></textarea>
         </label>
       </div>
 

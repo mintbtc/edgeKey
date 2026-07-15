@@ -105,21 +105,21 @@ const defaultTemplates: Record<EmailScene, EmailTemplateValue> = {
     scene: "ORDER_PAID",
     name: "支付成功通知",
     subject: "[{{siteName}}] 订单 {{orderNo}} 支付成功",
-    content: "您的订单已支付成功。\n\n订单号：{{orderNo}}\n商品：{{productName}}\n金额：{{amount}}\n备注：{{buyerNote}}\n查询地址：{{queryUrl}}\n\n{{footerText}}",
+    content: "您的订单已支付成功。\n\n订单号：{{orderNo}}\n顾客邮箱：{{contactEmail}}\n商品：{{productName}}\n金额：{{amount}}\n备注：{{buyerNote}}\n查询地址：{{queryUrl}}\n\n{{footerText}}",
     isEnabled: true,
   },
   DELIVERY_SUCCESS: {
     scene: "DELIVERY_SUCCESS",
     name: "发货成功通知",
     subject: "[{{siteName}}] 订单 {{orderNo}} 已发货",
-    content: "您的订单已完成发货。\n\n订单号：{{orderNo}}\n商品：{{productName}}\n数量：{{quantity}}\n备注：{{buyerNote}}\n发货内容：\n{{deliveryItems}}\n\n查询地址：{{queryUrl}}\n客服联系方式：{{supportContact}}",
+    content: "您的订单已完成发货。\n\n订单号：{{orderNo}}\n顾客邮箱：{{contactEmail}}\n商品：{{productName}}\n数量：{{quantity}}\n备注：{{buyerNote}}\n发货内容：\n{{deliveryItems}}\n\n查询地址：{{queryUrl}}\n客服联系方式：{{supportContact}}",
     isEnabled: true,
   },
   DELIVERY_FAILED: {
     scene: "DELIVERY_FAILED",
     name: "发货失败通知",
     subject: "[{{siteName}}] 订单 {{orderNo}} 发货失败",
-    content: "订单发货失败，请尽快处理。\n\n订单号：{{orderNo}}\n商品：{{productName}}\n备注：{{buyerNote}}\n失败原因：{{errorMessage}}\n\n查询地址：{{queryUrl}}\n客服联系方式：{{supportContact}}",
+    content: "订单发货失败，请尽快处理。\n\n订单号：{{orderNo}}\n顾客邮箱：{{contactEmail}}\n商品：{{productName}}\n备注：{{buyerNote}}\n失败原因：{{errorMessage}}\n\n查询地址：{{queryUrl}}\n客服联系方式：{{supportContact}}",
     isEnabled: true,
   },
 };
@@ -173,6 +173,10 @@ function getQueryUrl(baseOrigin: string, orderNo: string, token: string) {
 function buildDeliveryItems(items: string[]) {
   if (!items.length) {
     return "暂无发货内容";
+  }
+
+  if (items.length === 1) {
+    return items[0];
   }
 
   return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
@@ -898,7 +902,7 @@ export async function sendTestEmail(input: {
     toEmail: validated.toEmail,
     values: {
       siteName: site.siteName,
-      sentAt: new Date().toLocaleString("zh-CN"),
+      sentAt: new Date().toLocaleString("zh-CN", { timeZone: site.timezone || "Asia/Shanghai" }),
       customContent: validated.customContent,
     },
     triggeredBy: `admin:${adminId || 0}`,
@@ -951,6 +955,7 @@ export async function notifyOrderPaid(input: {
   productName: string;
   amount: number;
   toEmail?: string | null;
+  contactEmail?: string | null;
   buyerNote?: string | null;
 }) {
   const prisma = input.prisma ?? getEmailContext().prisma;
@@ -964,6 +969,7 @@ export async function notifyOrderPaid(input: {
   const values = {
     siteName: baseValues.siteName,
     orderNo: input.orderNo,
+    contactEmail: input.contactEmail || "未知",
     productName: input.productName,
     amount: (input.amount / 100).toFixed(2),
     queryUrl: getQueryUrl(baseValues.baseOrigin, input.orderNo, input.queryToken),
@@ -1015,6 +1021,7 @@ export async function notifyDeliverySuccess(input: {
   quantity: number;
   items: string[];
   toEmail?: string | null;
+  contactEmail?: string | null;
   buyerNote?: string | null;
 }) {
   const prisma = input.prisma ?? getEmailContext().prisma;
@@ -1028,6 +1035,7 @@ export async function notifyDeliverySuccess(input: {
   const values = {
     siteName: baseValues.siteName,
     orderNo: input.orderNo,
+    contactEmail: input.contactEmail || "未知",
     productName: input.productName,
     quantity: String(input.quantity),
     buyerNote: input.buyerNote || "无",
@@ -1078,6 +1086,7 @@ export async function notifyDeliveryFailed(input: {
   queryToken: string;
   productName: string;
   toEmail?: string | null;
+  contactEmail?: string | null;
   errorMessage: string;
   buyerNote?: string | null;
 }) {
@@ -1092,6 +1101,7 @@ export async function notifyDeliveryFailed(input: {
   const values = {
     siteName: baseValues.siteName,
     orderNo: input.orderNo,
+    contactEmail: input.contactEmail || "未知",
     productName: input.productName,
     buyerNote: input.buyerNote || "无",
     errorMessage: input.errorMessage,

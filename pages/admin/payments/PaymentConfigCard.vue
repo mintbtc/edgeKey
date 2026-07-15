@@ -55,9 +55,10 @@ import EpayForm from "./forms/EpayForm.vue";
 import AlipayForm from "./forms/AlipayForm.vue";
 import AlipayFaceForm from "./forms/AlipayFaceForm.vue";
 import StripeForm from "./forms/StripeForm.vue";
+import HashpayForm from "./forms/HashpayForm.vue";
 import type { PaymentProvider, PaymentConfigValue } from "../../../modules/payment/types";
 
-const formMap = { BEPUSDT: BEpusdtForm, EPAY: EpayForm, ALIPAY: AlipayForm, ALIPAY_FACE: AlipayFaceForm, STRIPE: StripeForm };
+const formMap: Record<string, any> = { BEPUSDT: BEpusdtForm, EPAY: EpayForm, ALIPAY: AlipayForm, ALIPAY_FACE: AlipayFaceForm, STRIPE: StripeForm, HASHPAY: HashpayForm };
 
 const emit = defineEmits<{ saved: [value: typeof props.initialValue] }>();
 
@@ -75,15 +76,15 @@ const form = reactive({
   returnUrl: props.initialValue?.returnUrl ?? '',
 });
 
-const extraFields = reactive(
-  props.provider === 'BEPUSDT'
-    ? { appId: props.initialValue?.appId ?? '', appSecret: props.initialValue?.appSecret ?? '' }
-    : props.provider === 'ALIPAY' || props.provider === 'ALIPAY_FACE'
-      ? { alipayAppId: props.initialValue?.alipayAppId ?? '', alipayPrivateKey: props.initialValue?.alipayPrivateKey ?? '', alipayPublicKey: props.initialValue?.alipayPublicKey ?? '' }
-      : props.provider === 'STRIPE'
-        ? { stripeSecretKey: props.initialValue?.stripeSecretKey ?? '', stripeWebhookSecret: props.initialValue?.stripeWebhookSecret ?? '', stripeCurrency: props.initialValue?.stripeCurrency ?? 'cny' }
-        : { pid: props.initialValue?.pid ?? '', key: props.initialValue?.key ?? '' }
-);
+const extraFieldsMap: Record<string, () => Record<string, any>> = {
+  BEPUSDT: () => ({ appId: props.initialValue?.appId ?? '', appSecret: props.initialValue?.appSecret ?? '' }),
+  EPAY: () => ({ pid: props.initialValue?.pid ?? '', key: props.initialValue?.key ?? '' }),
+  ALIPAY: () => ({ alipayAppId: props.initialValue?.alipayAppId ?? '', alipayPrivateKey: props.initialValue?.alipayPrivateKey ?? '', alipayPublicKey: props.initialValue?.alipayPublicKey ?? '' }),
+  ALIPAY_FACE: () => ({ alipayAppId: props.initialValue?.alipayAppId ?? '', alipayPrivateKey: props.initialValue?.alipayPrivateKey ?? '', alipayPublicKey: props.initialValue?.alipayPublicKey ?? '' }),
+  STRIPE: () => ({ stripeSecretKey: props.initialValue?.stripeSecretKey ?? '', stripeWebhookSecret: props.initialValue?.stripeWebhookSecret ?? '', stripeCurrency: props.initialValue?.stripeCurrency ?? 'cny' }),
+  HASHPAY: () => ({ hashpayMerchantId: props.initialValue?.hashpayMerchantId ?? '', hashpayPrivateKey: props.initialValue?.hashpayPrivateKey ?? '', hashpayCurrency: props.initialValue?.hashpayCurrency ?? 'CNY' }),
+};
+const extraFields = reactive((extraFieldsMap[props.provider] ?? extraFieldsMap.EPAY)());
 
 const saving = ref(false);
 const saved = ref(false);
@@ -100,20 +101,8 @@ async function handleSave() {
     form.baseUrl = result.baseUrl;
     form.notifyUrl = result.notifyUrl ?? '';
     form.returnUrl = result.returnUrl ?? '';
-    if (props.provider === 'BEPUSDT') {
-      (extraFields as any).appId = result.appId ?? '';
-      (extraFields as any).appSecret = result.appSecret ?? '';
-    } else if (props.provider === 'STRIPE') {
-      (extraFields as any).stripeSecretKey = (result as any).stripeSecretKey ?? '';
-      (extraFields as any).stripeWebhookSecret = (result as any).stripeWebhookSecret ?? '';
-      (extraFields as any).stripeCurrency = (result as any).stripeCurrency ?? 'cny';
-    } else if (props.provider === 'ALIPAY' || props.provider === 'ALIPAY_FACE') {
-      (extraFields as any).alipayAppId = (result as any).alipayAppId ?? '';
-      (extraFields as any).alipayPrivateKey = (result as any).alipayPrivateKey ?? '';
-      (extraFields as any).alipayPublicKey = (result as any).alipayPublicKey ?? '';
-    } else {
-      (extraFields as any).pid = result.pid ?? '';
-      (extraFields as any).key = result.key ?? '';
+    for (const key of Object.keys(extraFields)) {
+      (extraFields as any)[key] = (result as any)[key] ?? (extraFields as any)[key];
     }
     saved.value = true;
     emit('saved', { provider: props.provider, ...form, ...extraFields });

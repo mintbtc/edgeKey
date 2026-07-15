@@ -145,12 +145,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, provide, ref } from "vue";
 import AppButton from "../../components/AppButton.vue";
 import { usePageContext } from "vike-vue/usePageContext";
+import { useData } from "vike-vue/useData";
 import { menuGroups, getBreadcrumbs, isGroupOpen, isItemActive } from "./menu";
+import type { Data } from "./+data";
+import { SITE_TIMEZONE_KEY } from "../../lib/utils/time";
 
 import logoUrl from "../../assets/logo.svg";
+
+const { timezone } = useData<Data>();
+provide(SITE_TIMEZONE_KEY, timezone);
 
 const pageContext = usePageContext();
 

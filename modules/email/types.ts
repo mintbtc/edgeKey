@@ -80,6 +80,7 @@ export const EMAIL_TEMPLATE_VARIABLES: Record<EmailScene, EmailTemplateVariable[
   ORDER_PAID: [
     { name: "siteName", description: "站点名称（来自站点设置）" },
     { name: "orderNo", description: "订单号" },
+    { name: "contactEmail", description: "顾客邮箱" },
     { name: "productName", description: "商品名称" },
     { name: "amount", description: "订单金额" },
     { name: "buyerNote", description: "买家备注" },
@@ -89,6 +90,7 @@ export const EMAIL_TEMPLATE_VARIABLES: Record<EmailScene, EmailTemplateVariable[
   DELIVERY_SUCCESS: [
     { name: "siteName", description: "站点名称（来自站点设置）" },
     { name: "orderNo", description: "订单号" },
+    { name: "contactEmail", description: "顾客邮箱" },
     { name: "productName", description: "商品名称" },
     { name: "quantity", description: "购买数量" },
     { name: "buyerNote", description: "买家备注" },
@@ -99,6 +101,7 @@ export const EMAIL_TEMPLATE_VARIABLES: Record<EmailScene, EmailTemplateVariable[
   DELIVERY_FAILED: [
     { name: "siteName", description: "站点名称（来自站点设置）" },
     { name: "orderNo", description: "订单号" },
+    { name: "contactEmail", description: "顾客邮箱" },
     { name: "productName", description: "商品名称" },
     { name: "buyerNote", description: "买家备注" },
     { name: "errorMessage", description: "失败原因" },

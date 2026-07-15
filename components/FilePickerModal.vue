@@ -192,6 +192,7 @@ watch(
       refreshFiles();
     }
   },
+  { immediate: true },
 );
 
 async function refreshFiles() {

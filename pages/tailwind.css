@@ -19,6 +19,12 @@
   h1 {
     @apply mb-4 text-4xl font-bold tracking-tight text-base-content;
   }
+  h2 {
+    @apply mb-3 mt-5 text-2xl font-bold text-base-content;
+  }
+  h3 {
+    @apply mb-2 mt-4 text-xl font-bold text-base-content;
+  }
   ul {
     @apply list-disc pl-6;
   }
@@ -30,5 +36,20 @@
   }
   a {
     @apply text-primary hover:text-primary/80 transition-colors;
+  }
+  blockquote {
+    @apply my-4 border-l-3 border-primary/40 pl-4 text-base-content/70;
+  }
+  hr {
+    @apply my-4 border-t border-base-content/10;
+  }
+  img {
+    @apply my-4 mx-auto block max-w-full rounded-xl;
+  }
+  .card img {
+    @apply m-0 max-w-none rounded-none;
+  }
+  mark {
+    @apply rounded px-0.5;
   }
 }

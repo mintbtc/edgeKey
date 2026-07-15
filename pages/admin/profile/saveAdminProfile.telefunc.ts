@@ -1,4 +1,5 @@
 import { assertAdminAccess, updateAdminProfile } from "../../../modules/auth/service";
+import { throwAbortError } from "../../../lib/throw-abort-error";
 
 export async function onSaveAdminProfile(input: {
   nickname?: string;
@@ -6,6 +7,10 @@ export async function onSaveAdminProfile(input: {
   currentPassword?: string;
   newPassword?: string;
 }) {
-  assertAdminAccess();
-  return updateAdminProfile(input);
+  try {
+    assertAdminAccess();
+    return await updateAdminProfile(input);
+  } catch (error) {
+    throwAbortError(error);
+  }
 }

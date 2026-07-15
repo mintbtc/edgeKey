@@ -99,7 +99,7 @@ export function upsertProductRecord(
     description?: string | null;
     price: number;
     status: "DRAFT" | "ACTIVE" | "INACTIVE";
-    deliveryType: "CARD_AUTO" | "FIXED_CARD" | "MANUAL";
+    deliveryType: "CARD_AUTO" | "FIXED_CARD" | "MANUAL" | "EXPRESS";
     fixedDeliveryContent?: string | null;
     manualDeliveryHint?: string | null;
     stockMode: "FINITE" | "UNLIMITED";

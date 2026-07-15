@@ -1,6 +1,6 @@
 {
-  "version": "1.4.6",
-  "scripts": {
+  "version": "1.5.1",
+    "scripts": {
     "dev": "vike dev",
     "build": "bun run db:generate && vike build",
     "preview": "vike build && vike preview",

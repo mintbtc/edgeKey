@@ -26,20 +26,21 @@
           </div>
           <div class="space-y-1 text-sm">
             <div>联系方式：{{ order.contactValue || '-' }}</div>
+            <div v-if="order.receiverInfo">收货信息：{{ order.receiverInfo }}</div>
             <div>备注：{{ order.buyerNote || '-' }}</div>
             <div>创建时间：{{ formatDate(order.createdAt) }}</div>
             <div>查询凭证：<code>{{ order.queryToken }}</code></div>
           </div>
         </div>
-        <div v-if="order.productDeliveryType === 'MANUAL' && order.paymentStatus === 'PAID' && order.deliveryStatus !== 'DELIVERED'" class="pt-2">
+        <div v-if="(order.productDeliveryType === 'MANUAL' || order.productDeliveryType === 'EXPRESS') && order.paymentStatus === 'PAID' && order.deliveryStatus !== 'DELIVERED'" class="pt-2">
           <label class="flex flex-col gap-1.5">
-            <span class="label-text font-medium">手动发货内容</span>
-            <textarea v-model="manualDeliveryContent" class="textarea textarea-bordered w-full" rows="4" placeholder="填写本次订单要发给买家的内容"></textarea>
+            <span class="label-text font-medium">{{ order.productDeliveryType === 'EXPRESS' ? '快递发货内容' : '手动发货内容' }}</span>
+            <textarea v-model="manualDeliveryContent" class="textarea textarea-bordered w-full" rows="4" :placeholder="order.productDeliveryType === 'EXPRESS' ? '例如：快递单号、快递公司等物流信息' : '例如：账号密码、激活码等买家需要的内容'"></textarea>
           </label>
         </div>
         <div class="flex flex-wrap items-center gap-3 pt-2">
-          <AppButton size="sm" variant="primary" :disabled="order.deliveryStatus === 'DELIVERED' || order.paymentStatus !== 'PAID'" @click="handleRedeliver">{{ deliveryActionLabel }}</AppButton>
-          <AppButton size="sm" variant="outline" :disabled="order.status === 'CLOSED'" @click="handleClose">关闭订单</AppButton>
+          <AppButton size="sm" variant="primary" :loading="delivering" :disabled="order.deliveryStatus === 'DELIVERED' || order.paymentStatus !== 'PAID'" @click="handleRedeliver">{{ deliveryActionLabel }}</AppButton>
+          <AppButton size="sm" variant="outline" :loading="closing" :disabled="order.status === 'CLOSED'" @click="handleClose">关闭订单</AppButton>
           <span v-if="actionMessage" class="text-sm text-success">{{ actionMessage }}</span>
           <span v-if="actionError" class="text-sm text-error">{{ actionError }}</span>
         </div>
@@ -80,7 +81,8 @@
             <pre class="bg-base-200 rounded-box p-3 text-xs overflow-x-auto whitespace-pre-wrap break-all">{{ formattedPayload }}</pre>
             <div class="modal-action">
               <form method="dialog"><button class="btn btn-sm">关闭</button></form>
-            </div></div>
+            </div>
+          </div>
           <form method="dialog" class="modal-backdrop"><button>关闭</button></form>
         </dialog>
       </div>
@@ -112,6 +114,8 @@ import type { Data } from "./+data";
 const { order } = useData<Data>();
 const actionMessage = ref("");
 const actionError = ref("");
+const delivering = ref(false);
+const closing = ref(false);
 const manualDeliveryContent = ref("");
 const payloadDialogRef = ref<HTMLDialogElement | null>(null);
 const formattedPayload = ref("");
@@ -119,6 +123,7 @@ const formattedPayload = ref("");
 const deliveryActionLabel = computed(() => {
   if (!order) return "发货";
   if (order.productDeliveryType === "MANUAL") return "手动发货";
+  if (order.productDeliveryType === "EXPRESS") return "快递发货";
   if (order.productDeliveryType === "FIXED_CARD") return "发货固定内容";
   return "重新自动发货";
 });
@@ -132,33 +137,46 @@ function openRawPayload(raw: string) {
   payloadDialogRef.value?.showModal();
 }
 
+import { inject } from "vue";
+import { SITE_TIMEZONE_KEY, formatDateInTimezone } from "../../../../lib/utils/time";
+
+const timezone = inject(SITE_TIMEZONE_KEY, "Asia/Shanghai");
+
 function formatDate(value: string) {
-  return new Date(value).toLocaleString();
+  return formatDateInTimezone(value, timezone);
 }
 
 async function handleRedeliver() {
-  if (!order) return;
+  if (!order || delivering.value) return;
   actionMessage.value = "";
   actionError.value = "";
+  delivering.value = true;
 
   try {
     const result = await onRedeliver({ orderId: order.id, content: manualDeliveryContent.value });
+    order.deliveryStatus = "DELIVERED";
     actionMessage.value = `${deliveryActionLabel.value}完成，共发出 ${result.items.length} 条内容。`;
   } catch (error) {
     actionError.value = normalizeTelefuncError(error, "发货失败");
+  } finally {
+    delivering.value = false;
   }
 }
 
 async function handleClose() {
-  if (!order) return;
+  if (!order || closing.value) return;
   actionMessage.value = "";
   actionError.value = "";
+  closing.value = true;
 
   try {
     await onCloseOrder({ orderId: order.id });
-    actionMessage.value = "订单已关闭，请刷新查看最新状态。";
+    order.status = "CLOSED";
+    actionMessage.value = "订单已关闭。";
   } catch (error) {
     actionError.value = normalizeTelefuncError(error, "关闭失败");
+  } finally {
+    closing.value = false;
   }
 }
 </script>

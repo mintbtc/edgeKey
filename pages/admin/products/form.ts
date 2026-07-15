@@ -8,7 +8,7 @@ export interface ProductFormState {
   description: string;
   price: number;
   status: "DRAFT" | "ACTIVE" | "INACTIVE";
-  deliveryType: "CARD_AUTO" | "FIXED_CARD" | "MANUAL";
+  deliveryType: "CARD_AUTO" | "FIXED_CARD" | "MANUAL" | "EXPRESS";
   fixedDeliveryContent: string;
   manualDeliveryHint: string;
   minBuy: number;
