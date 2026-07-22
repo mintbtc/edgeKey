@@ -191,6 +191,7 @@ model Product {
   fixedDeliveryContent String?
   manualDeliveryHint String?
   stockMode         ProductStockMode    @default(FINITE)
+  physicalStock     Int?
   minBuy            Int                 @default(1)
   maxBuy            Int                 @default(1)
   sort              Int                 @default(0)

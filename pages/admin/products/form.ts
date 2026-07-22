@@ -11,6 +11,7 @@ export interface ProductFormState {
   deliveryType: "CARD_AUTO" | "FIXED_CARD" | "MANUAL" | "EXPRESS";
   fixedDeliveryContent: string;
   manualDeliveryHint: string;
+  physicalStock: number | null;
   minBuy: number;
   maxBuy: number;
   sort: number;
@@ -31,6 +32,7 @@ export function createProductFormState(input?: Partial<ProductFormState>): Produ
     deliveryType: input?.deliveryType ?? "CARD_AUTO",
     fixedDeliveryContent: input?.fixedDeliveryContent ?? "",
     manualDeliveryHint: input?.manualDeliveryHint ?? "",
+    physicalStock: input?.physicalStock ?? null,
     minBuy: input?.minBuy ?? 1,
     maxBuy: input?.maxBuy ?? 1,
     sort: input?.sort ?? 0,

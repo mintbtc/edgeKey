@@ -12,8 +12,8 @@
           <input v-model="form.name" class="input input-bordered w-full" />
         </label>
         <label class="flex flex-col gap-1.5">
-          <span class="label-text font-medium">Slug</span>
-          <input v-model="form.slug" class="input input-bordered w-full" placeholder="留空则自动生成" />
+          <span class="label-text font-medium">副标题</span>
+          <input v-model="form.subtitle" class="input input-bordered w-full" />
         </label>
       </div>
 
@@ -28,8 +28,8 @@
           </select>
         </label>
         <label class="flex flex-col gap-1.5">
-          <span class="label-text font-medium">价格（分）</span>
-          <input v-model.number="form.price" type="number" min="0" class="input input-bordered w-full" />
+          <span class="label-text font-medium">Slug</span>
+          <input v-model="form.slug" class="input input-bordered w-full" placeholder="留空则自动生成" />
         </label>
         <label class="flex flex-col gap-1.5">
           <span class="label-text font-medium">状态</span>
@@ -80,6 +80,11 @@
           <span class="label-text font-medium">固定发货内容</span>
           <textarea v-model="form.fixedDeliveryContent" class="textarea textarea-bordered w-full" rows="5" placeholder="买家支付后会收到这段固定内容"></textarea>
         </label>
+        <label v-if="form.deliveryType === 'MANUAL' || form.deliveryType === 'EXPRESS'" class="flex flex-col gap-1.5">
+          <span class="label-text font-medium">实物库存</span>
+          <input v-model.number="form.physicalStock" type="number" min="0" class="input input-bordered w-full" placeholder="留空表示不限库存" />
+          <span class="text-xs text-base-content/60">设置库存数量，每次下单扣减 1。留空表示不限库存。</span>
+        </label>
         <label v-if="form.deliveryType === 'MANUAL'" class="flex flex-col gap-1.5">
           <span class="label-text font-medium">手动发货说明（可选）</span>
           <textarea v-model="form.manualDeliveryHint" class="textarea textarea-bordered w-full" rows="3" placeholder="例如：请留下账号信息，管理员将在 24 小时内处理"></textarea>
@@ -90,30 +95,33 @@
         </label>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-4">
-        <label class="flex flex-col gap-1.5">
-          <span class="label-text font-medium">最小购买数</span>
-          <input v-model.number="form.minBuy" type="number" min="1" class="input input-bordered w-full" />
-        </label>
-        <label class="flex flex-col gap-1.5">
-          <span class="label-text font-medium">最大购买数</span>
-          <input v-model.number="form.maxBuy" type="number" min="1" class="input input-bordered w-full" />
-        </label>
-        <label class="flex flex-col gap-1.5">
-          <span class="label-text font-medium">排序</span>
-          <input v-model.number="form.sort" type="number" class="input input-bordered w-full" />
-        </label>
-        <label class="flex flex-col gap-1.5">
-          <span class="label-text font-medium">价格预览</span>
-          <div class="input input-bordered w-full flex items-center text-sm text-base-content/70">{{ formatCents(form.price || 0) }}</div>
-        </label>
+      <div class="space-y-3 rounded-box border border-base-200 p-4">
+        <div class="text-sm font-medium">价格与购买规则</div>
+        <div class="grid gap-4 md:grid-cols-4">
+          <label class="flex flex-col gap-1.5">
+            <span class="label-text font-medium">价格（分）</span>
+            <input v-model.number="form.price" type="number" min="0" class="input input-bordered w-full" />
+          </label>
+          <label class="flex flex-col gap-1.5">
+            <span class="label-text font-medium">最小购买数</span>
+            <input v-model.number="form.minBuy" type="number" min="1" class="input input-bordered w-full" />
+          </label>
+          <label class="flex flex-col gap-1.5">
+            <span class="label-text font-medium">最大购买数</span>
+            <input v-model.number="form.maxBuy" type="number" min="1" class="input input-bordered w-full" />
+          </label>
+          <label class="flex flex-col gap-1.5">
+            <span class="label-text font-medium">排序</span>
+            <input v-model.number="form.sort" type="number" class="input input-bordered w-full" />
+          </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-base-content/60">价格预览：</span>
+          <span class="text-sm font-medium">{{ formatCents(form.price || 0) }}</span>
+        </div>
       </div>
 
       <div class="grid gap-4 md:grid-cols-2">
-        <label class="flex flex-col gap-1.5">
-          <span class="label-text font-medium">副标题</span>
-          <input v-model="form.subtitle" class="input input-bordered w-full" />
-        </label>
         <label class="flex flex-col gap-1.5">
           <span class="label-text font-medium">商品封面（图片链接）</span>
           <div class="flex gap-2">
@@ -121,6 +129,7 @@
             <AppButton variant="outline" @click="showFilePicker = true">选择图片</AppButton>
           </div>
         </label>
+        <div></div>
       </div>
 
       <div class="flex flex-col gap-1.5">
@@ -191,6 +200,7 @@ async function handleSave() {
       deliveryType: form.deliveryType,
       fixedDeliveryContent: form.fixedDeliveryContent,
       manualDeliveryHint: form.manualDeliveryHint,
+      physicalStock: form.physicalStock,
       minBuy: form.minBuy,
       maxBuy: form.maxBuy,
       sort: form.sort,
@@ -209,6 +219,7 @@ async function handleSave() {
     form.deliveryType = result.deliveryType;
     form.fixedDeliveryContent = result.fixedDeliveryContent ?? "";
     form.manualDeliveryHint = result.manualDeliveryHint ?? "";
+    form.physicalStock = result.physicalStock;
     form.minBuy = result.minBuy;
     form.maxBuy = result.maxBuy;
     form.sort = result.sort;

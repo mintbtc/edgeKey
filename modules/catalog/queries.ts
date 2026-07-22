@@ -2,12 +2,18 @@ import type { PrismaClient } from "../../generated/prisma/client";
 import { findProductRecordById, listAdminProductRecords, listCategoryRecords, listHomeCategoryRecords } from "./repository";
 import type { AdminProductSummary, CategorySummary, ProductDeliveryTypeValue, ProductSummary } from "./types";
 
-function getAvailableStock(item: { deliveryType: string; stockMode: string; _count: { cards: number } }) {
-  if (item.deliveryType !== "CARD_AUTO" || item.stockMode === "UNLIMITED") {
-    return -1;
+function getAvailableStock(item: { deliveryType: string; stockMode: string; physicalStock: number | null; _count: { cards: number } }) {
+  // CARD_AUTO: 使用卡密数量作为库存
+  if (item.deliveryType === "CARD_AUTO" && item.stockMode !== "UNLIMITED") {
+    return item._count.cards;
   }
 
-  return item._count.cards;
+  // MANUAL/EXPRESS: 使用实物库存
+  if ((item.deliveryType === "MANUAL" || item.deliveryType === "EXPRESS") && item.physicalStock != null) {
+    return item.physicalStock;
+  }
+
+  return -1;
 }
 
 export async function listHomeProducts(prisma: PrismaClient): Promise<ProductSummary[]> {
@@ -78,6 +84,7 @@ function mapProductSummary(item: {
   price: number;
   deliveryType: string;
   stockMode: string;
+  physicalStock: number | null;
   _count: { cards: number };
 }): ProductSummary {
   return {
@@ -160,6 +167,7 @@ export async function getAdminProductDetail(prisma: PrismaClient, id: number) {
     fixedDeliveryContent: record.fixedDeliveryContent,
     manualDeliveryHint: record.manualDeliveryHint,
     stockMode: record.stockMode as "FINITE" | "UNLIMITED",
+    physicalStock: record.physicalStock,
     minBuy: record.minBuy,
     maxBuy: record.maxBuy,
     sort: record.sort,
@@ -205,6 +213,7 @@ export async function getProductDetailBySlug(prisma: PrismaClient, slug: string)
     deliveryType: record.deliveryType as ProductDeliveryTypeValue,
     manualDeliveryHint: record.manualDeliveryHint,
     stockMode: record.stockMode as "FINITE" | "UNLIMITED",
+    physicalStock: record.physicalStock,
     availableStock: getAvailableStock(record),
   };
 }

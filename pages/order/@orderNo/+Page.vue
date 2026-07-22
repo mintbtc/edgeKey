@@ -65,7 +65,7 @@
         <div class="card-body">
           <h2 class="card-title">发货内容</h2>
           <div v-if="order.deliveryContents.length" class="space-y-2">
-            <pre v-for="content in order.deliveryContents" :key="content" class="rounded-box bg-base-200 p-3 text-sm">{{ content }}</pre>
+            <pre v-for="content in order.deliveryContents" :key="content" class="rounded-box bg-base-200 p-3 text-sm whitespace-pre-wrap break-all">{{ content }}</pre>
           </div>
           <p v-else class="text-sm text-base-content/60">当前订单尚未支付或尚未自动发货。</p>
         </div>

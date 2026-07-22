@@ -11,7 +11,12 @@
           <h1 class="text-3xl font-bold">{{ product.name }}</h1>
           <p class="mt-2 text-base-content/70">{{ product.subtitle }}</p>
         </div>
-        <div class="max-w-none text-base-content/80" v-html="descriptionHtml"></div>
+        <div
+          ref="descriptionRef"
+          class="max-w-none overflow-hidden text-base-content/80 [&_img]:my-4! [&_img]:block! [&_img]:h-auto! [&_img]:max-w-full! [&_img]:cursor-zoom-in [&_img]:rounded-xl! [&_img]:transition-opacity [&_img]:hover:opacity-90"
+          @click="handleDescriptionClick"
+          v-html="descriptionHtml"
+        ></div>
         <div class="rounded-box bg-base-200 p-4 text-sm text-base-content/80">
           {{ product.purchaseNote || '下单后将生成待支付订单，支付成功后会给您的联系邮箱发送通知，请注意查看。' }}
         </div>
@@ -133,11 +138,15 @@
             {{ product.availableStock === 0 ? '商品都卖光了，看看其他商品' : `库存紧张，仅剩 ${product.availableStock} 件` }}
           </p>
           <p v-else-if="product.deliveryType === 'FIXED_CARD'" class="text-sm text-success">自动发货，库存充足。</p>
-          <p v-else-if="product.deliveryType === 'MANUAL'" class="text-sm text-success">{{ product.manualDeliveryHint || '支付后，客服将尽快为您处理订单，请耐心等待。' }}</p>
-          <p v-else-if="product.deliveryType === 'EXPRESS'" class="text-sm text-success">{{ product.manualDeliveryHint || '请填写收货信息，支付后管理员将安排快递发货。' }}</p>
+          <p v-else-if="product.deliveryType === 'MANUAL'" class="text-sm" :class="product.availableStock === 0 ? 'text-error' : product.availableStock > 0 && product.availableStock < 10 ? 'text-warning' : 'text-success'">
+            {{ product.availableStock === 0 ? '商品都卖光了，看看其他商品' : product.availableStock > 0 && product.availableStock < 10 ? `库存紧张，仅剩 ${product.availableStock} 件` : (product.manualDeliveryHint || '支付后，客服将尽快为您处理订单，请耐心等待。') }}
+          </p>
+          <p v-else-if="product.deliveryType === 'EXPRESS'" class="text-sm" :class="product.availableStock === 0 ? 'text-error' : product.availableStock > 0 && product.availableStock < 10 ? 'text-warning' : 'text-success'">
+            {{ product.availableStock === 0 ? '商品都卖光了，看看其他商品' : product.availableStock > 0 && product.availableStock < 10 ? `库存紧张，仅剩 ${product.availableStock} 件` : (product.manualDeliveryHint || '请填写收货信息，支付后管理员将安排快递发货。') }}
+          </p>
 
-          <AppButton variant="primary" :loading="submitting" :disabled="(!isFreeOrder && !paymentMethods.length) || (product.deliveryType === 'CARD_AUTO' && product.availableStock === 0)" @click="handleCreateOrder">
-            {{ product.deliveryType === 'CARD_AUTO' && product.availableStock === 0 ? '已售罄' : isFreeOrder ? '免费获取' : '提交订单' }}
+          <AppButton variant="primary" :loading="submitting" :disabled="(!isFreeOrder && !paymentMethods.length) || ((product.deliveryType === 'CARD_AUTO' || product.deliveryType === 'MANUAL' || product.deliveryType === 'EXPRESS') && product.availableStock === 0)" @click="handleCreateOrder">
+            {{ (product.deliveryType === 'CARD_AUTO' || product.deliveryType === 'MANUAL' || product.deliveryType === 'EXPRESS') && product.availableStock === 0 ? '已售罄' : isFreeOrder ? '免费获取' : '提交订单' }}
           </AppButton>
           <p v-if="!isFreeOrder && !paymentMethods.length" class="text-sm text-warning">当前没有可用支付方式，请联系管理员启用支付配置。</p>
           <p v-if="errorMessage" class="text-sm text-error">{{ errorMessage }}</p>
@@ -145,12 +154,33 @@
       </div>
     </aside>
   </div>
+
+  <div
+    v-if="previewImage"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="图片预览"
+    @click.self="closeImagePreview"
+  >
+    <button
+      type="button"
+      class="btn btn-circle btn-ghost absolute right-4 top-4 text-white hover:bg-white/15"
+      aria-label="关闭图片预览"
+      @click="closeImagePreview"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <img :src="previewImage.src" :alt="previewImage.alt" class="max-h-full max-w-full rounded-lg object-contain shadow-2xl" />
+  </div>
 </template>
 
 <script setup lang="ts">
 import AppButton from "../../../components/AppButton.vue";
 import { normalizeTelefuncError } from "../../../lib/app-error";
-import { reactive, ref, computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useData } from "vike-vue/useData";
 import { isEmail } from "../../../lib/validators/email";
 import { formatCents } from "../../../lib/utils/money";
@@ -158,7 +188,7 @@ import { onCreateOrder } from "./createOrder.telefunc";
 import { onPreviewDiscount } from "./previewDiscount.telefunc";
 import type { PaymentProvider } from "../../../modules/payment/types";
 import { isMobile } from "../../../lib/utils/device";
-import { onMounted, watch } from "vue";
+
 import { saveLocalOrder } from "../../../lib/local-orders";
 import type { Data } from "./+data";
 
@@ -167,6 +197,8 @@ import emptyCoverUrl from "../../../assets/empty.jpg";
 const { product, paymentMethods } = useData<Data>();
 const submitting = ref(false);
 const errorMessage = ref("");
+const descriptionRef = ref<HTMLElement | null>(null);
+const previewImage = ref<{ src: string; alt: string } | null>(null);
 const epayChannels = [
   { value: "alipay", label: "支付宝", icon: "alipay" },
   { value: "wxpay", label: "微信", icon: "wechat" },
@@ -206,6 +238,11 @@ function getDefaultPaymentChannel(provider: PaymentProvider | "") {
 onMounted(() => {
   mobile = isMobile();
   form.paymentChannel = getDefaultPaymentChannel(form.paymentProvider);
+  window.addEventListener("keydown", handlePreviewKeydown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handlePreviewKeydown);
 });
 
 watch(() => form.paymentProvider, (provider) => {
@@ -220,6 +257,21 @@ watch(() => form.discountCode, () => {
 });
 
 const descriptionHtml = formatDescriptionHtml(product?.description || "");
+
+function handleDescriptionClick(event: MouseEvent) {
+  const image = event.target instanceof HTMLImageElement ? event.target : null;
+  if (!image || !descriptionRef.value?.contains(image)) return;
+
+  previewImage.value = { src: image.currentSrc || image.src, alt: image.alt || product?.name || "商品描述图片" };
+}
+
+function closeImagePreview() {
+  previewImage.value = null;
+}
+
+function handlePreviewKeydown(event: KeyboardEvent) {
+  if (event.key === "Escape") closeImagePreview();
+}
 
 const isFreeOrder = computed(() => {
   return discountPreview.valid && discountPreview.finalAmount === 0;
