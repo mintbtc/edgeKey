@@ -13,7 +13,7 @@
 			"binding": "DB",
 			"database_name": "edgekey-db",
 			"migrations_dir": "prisma/migrations",
-			// "database_id": "24390dbc-b9c6-4ae6-8c7f-507fb2eb36f2", // 执行 wrangler d1 命令必须，但是与cf一键部署冲突所以注释
+			"database_id": "1fc4f414-9d81-4ad2-b7ed-c4a954e8a09f", // 执行 wrangler d1 命令必须，但是与cf一键部署冲突所以注释
 		}
 	],
 	"triggers": {
